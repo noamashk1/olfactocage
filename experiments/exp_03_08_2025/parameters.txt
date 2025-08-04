@@ -1,0 +1,30 @@
+
+--- 2025-08-03 11:02:52 ---
+
+Levels:
+ Level Name                                                        Stimulus Path  Probability Value  Index
+habituation  /home/educage/git_educage2/educage2/pythonProject1/stimuli/7KHZ.npz          100    go      1
+         L1  /home/educage/git_educage2/educage2/pythonProject1/stimuli/7KHZ.npz           50    go      2
+         L1 /home/educage/git_educage2/educage2/pythonProject1/stimuli/14KHZ.npz           50 no-go      3
+         L2  /home/educage/git_educage2/educage2/pythonProject1/stimuli/7KHZ.npz           50    go      4
+         L2 /home/educage/git_educage2/educage2/pythonProject1/stimuli/12KHZ.npz           50 no-go      5
+
+Mice:
+ID: 000799EB9B, Level:L1
+ID: 00082ECFD2, Level:L1
+ID: 00082ED4D6, Level:L1
+
+Parameters:
+lick_time: 1
+lick_time_bin_size: None
+start_trial_option: 1
+start_trial_time: None
+IR_no_RFID_option: Take the Last RFID
+lick_threshold: 5
+time_to_lick_after_stim: 2
+open_valve_duration: 0.017
+ITI: 1
+ITI_time: None
+stimulus_length: 2
+
+----------------------------------------

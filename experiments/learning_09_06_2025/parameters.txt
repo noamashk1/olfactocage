@@ -1,0 +1,29 @@
+
+--- 2025-06-09 09:27:41 ---
+
+Levels:
+ Level Name                                                        Stimulus Path  Probability Value  Index
+habituation  /home/educage/git_educage2/educage2/pythonProject1/stimuli/7KHz.npy          100    go      1
+         L1  /home/educage/git_educage2/educage2/pythonProject1/stimuli/7KHz.npy           50    go      2
+         L1 /home/educage/git_educage2/educage2/pythonProject1/stimuli/14KHz.npy           50 no-go      3
+         L2  /home/educage/git_educage2/educage2/pythonProject1/stimuli/7KHz.npy           50    go      4
+         L2 /home/educage/git_educage2/educage2/pythonProject1/stimuli/13KHz.npy           50 no-go      5
+
+Mice:
+000799EB9B: <mouse.Mouse object at 0x5f833298>
+0007B81925: <mouse.Mouse object at 0x5f87ef40>
+0007BC19C1: <mouse.Mouse object at 0x5f8234d8>
+
+Parameters:
+lick_time: 1
+lick_time_bin_size: None
+start_trial_option: 1
+start_trial_time: None
+IR_no_RFID_option: Take the Last RFID
+lick_threshold: 5
+time_to_lick_after_stim: 2
+ITI: 1
+ITI_time: None
+stimulus_length: 2
+
+----------------------------------------
