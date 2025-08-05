@@ -19,8 +19,7 @@ from data_analysis import DataAnalysis
 class TkinterApp:
     def __init__(self, root,exp, exp_name):
         self.root = root
-        self.root.title("Educage")
-        #self.experiment = experiment_1.Experiment(exp_name, self.root)
+        self.root.title("Olfactocage")
         self.levels_list = []
         self.levels_df = None
         self.experiment = exp
@@ -77,6 +76,8 @@ class TkinterApp:
         self.btnStimGenerator.grid(row=0, column=0, padx=10, pady=10)
         self.btnDataAnalysis = tk.Button(self.left_frame_bottom, text="Data Analysis",command=self.open_data_analysis_window)
         self.btnDataAnalysis.grid(row=0, column=1, padx=10, pady=10)
+        self.btnUpdateGPIO = tk.Button(self.left_frame_bottom, text="Update GPIO", command=self.experiment.create_GPIO_dict)
+        self.btnUpdateGPIO.grid(row=0, column=2, padx=10, pady=10)
 
 
         # Create a Frame to hold the Treeview and Scrollbars
@@ -228,7 +229,7 @@ class TkinterApp:
                 
     def create_level_table(self):
         levels_window = tk.Toplevel(self.root)
-        level_definition_app = levels_table_creating.LevelDefinitionApp(levels_window)
+        level_definition_app = levels_table_creating.efinitionApp(levels_window, self.experiment)
         self.root.wait_window(levels_window)
         if level_definition_app.save_path:  # Ensure save_path is defined
             self.load_table(level_definition_app.save_path)
@@ -338,6 +339,7 @@ class TkinterApp:
                 "lick_threshold": self.parameters_btns.licks_entry.get(),
                 "time_to_lick_after_stim": self.parameters_btns.time_licks_entry.get(),
                 "open_valve_duration": self.parameters_btns.time_open_valve_entry.get(),
+                "open_odor_duration": self.parameters_btns.time_open_odor_entry.get(),
                 "ITI": self.parameters_btns.ITI_display_option.get(),
                 "ITI_time": self.parameters_btns.ITI_bin_size_entry.get() if self.parameters_btns.ITI_display_option.get() == '2' else None,
                 "stimulus_length": self.experiment.stim_length,
@@ -403,3 +405,12 @@ class TkinterApp:
     def open_data_analysis_window(self):
         analysis_root = tk.Toplevel()
         DataAnalysis(analysis_root)
+        def run():
+            root = tk.Tk()
+            # You may need to provide appropriate arguments for exp and exp_name
+            # For demonstration, we'll use None and an empty string
+            app = TkinterApp(root, None, "")
+            root.mainloop()
+
+        if __name__ == "__main__":
+            run()

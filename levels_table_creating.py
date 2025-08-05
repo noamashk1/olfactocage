@@ -8,8 +8,9 @@ import os
 
 class LevelDefinitionApp:
     
-    def __init__(self, master):
+    def __init__(self, master, experiment):
         self.master = master
+        self.experiment = experiment
         self.master.title("Experiment Level Definition")
         self.frame = tk.Frame(self.master)
         self.frame.pack(padx=10, pady=10)
@@ -122,9 +123,7 @@ class LevelDefinitionApp:
             data_to_save.append([level_name, stimulus_path,probability,value,index])#[stimulus_name, filename_label.cget("text"), probability_selection])
 
         if all_filled:
-#             # Prompt user to choose location to save the CSV file
-#             file_path = filedialog.asksaveasfilename(defaultextension=".csv", 
-#                                                        filetypes=[("CSV files", "*.csv"), ("All files", "*.*")])
+
 
             levels_dir = os.path.join(os.getcwd(), "Levels")
             os.makedirs(levels_dir, exist_ok=True)  # Create it if it doesn't exist
@@ -141,7 +140,7 @@ class LevelDefinitionApp:
                 # Write to CSV
                 with open(file_path, mode='w', newline='') as file:
                     writer = csv.writer(file)
-                    writer.writerow(["Level Name","Stimulus Path", "Probability", "Value", "Index"])  # Writing headers
+                    writer.writerow(["Level Name","Odor Number", "Probability", "Value", "Index"])  # Writing headers
                     writer.writerows(data_to_save)  # Writing data rows
                     print(data_to_save)
             
@@ -158,21 +157,10 @@ class LevelDefinitionApp:
         for i in range(number_of_stimuli):
             # Add Level Name label
             tk.Label(self.stimuli_frame, text=level_name).grid(row=start_row + i + 1, column=0, padx=5, pady=2)
-            
-            # Create a frame to hold the entry and label
-            stimuli_frame = tk.Frame(self.stimuli_frame)
-            stimuli_frame.grid(row=start_row + i + 1, column=1, padx=5, pady=2)
-
-            # Create the Stimuli entry field
-            stimulus_entry = tk.Entry(stimuli_frame)
-            stimulus_entry.pack(side=tk.TOP)  # Pack Entry at the top
-
-            # Create a label to display the filename
-            filename_label = tk.Label(stimuli_frame, text="", fg="gray")  # Gray text for the filename
-            filename_label.pack(side=tk.TOP)  # Pack Label below the Entry
-
-            # Bind the click event for the entry
-            stimulus_entry.bind("<Button-1>", lambda event, entry=stimulus_entry, label=filename_label: self.load_stimulus_file(entry, label))
+            gpio_keys = list(self.experiment.GPIO_dict.keys())  # נניח שיש לך self.experiment
+            stimulus_combobox = ttk.Combobox(self.stimuli_frame, values=gpio_keys, state="readonly")
+            stimulus_combobox.grid(row=start_row + i + 1, column=1, padx=5, pady=2)
+            stimulus_combobox.set("Select")  # Placeholder
 
 
             # Create the Probability entry field
@@ -188,7 +176,7 @@ class LevelDefinitionApp:
             index_entry = tk.Entry(self.stimuli_frame)
             index_entry.grid(row=start_row + i + 1, column=4, padx=5, pady=2) 
             
-            self.stimuli_table_content.append((level_name, stimulus_entry,probability_entry,value_combobox,index_entry))
+            self.stimuli_table_content.append((level_name, stimulus_combobox,probability_entry,value_combobox,index_entry))
             
             # Draw a line separator after the last row of stimuli for this level
         separator = tk.Frame(self.stimuli_frame, height=1, bg="gray")  # Create a frame for the line
@@ -203,8 +191,7 @@ class LevelDefinitionApp:
         initialdir=default_dir,
         title="Select Stimulus File"
     )
-#          file_path = filedialog.askopenfilename(title="Select Stimulus File",
-#                                                  filetypes=(("All Files", "*.*"),))
+
         if file_path:  # If a file was selected
             entry.delete(0, tk.END)  # Clear the current entry
             entry.insert(0, file_path)  # Insert the selected file path
@@ -213,7 +200,6 @@ class LevelDefinitionApp:
             filename = file_path.split("/")[-1]  # Get the filename from the path
             label.config(text=filename)  # Update the label with just the filename
             
-        
 
 # Application Execution
 if __name__ == "__main__":
