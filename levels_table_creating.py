@@ -59,7 +59,7 @@ class LevelDefinitionApp:
     def header_titles(self):
         # Create header for the stimuli table
         tk.Label(self.stimuli_frame, text="Level Name", font=("Arial", 12, "bold")).grid(row=0, column=0, padx=5, pady=5)
-        tk.Label(self.stimuli_frame, text="Stimuli path", font=("Arial", 12, "bold")).grid(row=0, column=1, padx=5, pady=5)
+        tk.Label(self.stimuli_frame, text="Odor Number", font=("Arial", 12, "bold")).grid(row=0, column=1, padx=5, pady=5)
         tk.Label(self.stimuli_frame, text="Probability", font=("Arial", 12, "bold")).grid(row=0, column=2, padx=5, pady=5)
         tk.Label(self.stimuli_frame, text="value", font=("Arial", 12, "bold")).grid(row=0, column=3, padx=5, pady=5)
         tk.Label(self.stimuli_frame, text="index", font=("Arial", 12, "bold")).grid(row=0, column=4, padx=5, pady=5)
@@ -106,21 +106,21 @@ class LevelDefinitionApp:
         all_filled = True  # Flag to check if all fields are filled
 
         # Loop through all level entries to pull their contents
-        for level_name, stimulus_entry, probability_entry, value_combobox, index_entry in self.stimuli_table_content:
+        for level_name, stimulus_combobox, probability_entry, value_combobox, index_entry in self.stimuli_table_content:
             
             #level_name = level_name_row.get().strip()
-            stimulus_path = stimulus_entry.get().strip()
+            odor_number = stimulus_combobox.get().strip()
             probability = probability_entry.get().strip()
             value = value_combobox.get().strip()
             index = index_entry.get().strip()
 
             # Check if each required field is filled
-            if not stimulus_path or not probability or not index or value == "Select":
+            if not odor_number or not probability or not index or value == "Select":
                 all_filled = False
                 break
 
             # Prepare a row to be saved
-            data_to_save.append([level_name, stimulus_path,probability,value,index])#[stimulus_name, filename_label.cget("text"), probability_selection])
+            data_to_save.append([level_name, odor_number,probability,value,index])#[stimulus_name, filename_label.cget("text"), probability_selection])
 
         if all_filled:
 
@@ -182,23 +182,23 @@ class LevelDefinitionApp:
         separator = tk.Frame(self.stimuli_frame, height=1, bg="gray")  # Create a frame for the line
         separator.grid(row=start_row + number_of_stimuli + 1, column=0, columnspan=5, sticky="ew", padx=5, pady=5) #columnspan - the length of the line- num of columns
         
-    def load_stimulus_file(self, entry, label):
-        # Open file dialog to select a stimulus file
-        stimuli_dir = os.path.join(os.getcwd(), "stimuli")
-        default_dir = stimuli_dir if os.path.exists(stimuli_dir) else os.getcwd()
-        file_path = filedialog.askopenfilename(
-        filetypes=(("All Files", "*.*"),),
-        initialdir=default_dir,
-        title="Select Stimulus File"
-    )
+    # def load_stimulus_file(self, entry, label):
+    #     # Open file dialog to select a stimulus file
+    #     stimuli_dir = os.path.join(os.getcwd(), "stimuli")
+    #     default_dir = stimuli_dir if os.path.exists(stimuli_dir) else os.getcwd()
+    #     file_path = filedialog.askopenfilename(
+    #     filetypes=(("All Files", "*.*"),),
+    #     initialdir=default_dir,
+    #     title="Select Stimulus File"
+    # )
 
-        if file_path:  # If a file was selected
-            entry.delete(0, tk.END)  # Clear the current entry
-            entry.insert(0, file_path)  # Insert the selected file path
+    #     if file_path:  # If a file was selected
+    #         entry.delete(0, tk.END)  # Clear the current entry
+    #         entry.insert(0, file_path)  # Insert the selected file path
             
-            # Update the label to show only the filename
-            filename = file_path.split("/")[-1]  # Get the filename from the path
-            label.config(text=filename)  # Update the label with just the filename
+    #         # Update the label to show only the filename
+    #         filename = file_path.split("/")[-1]  # Get the filename from the path
+    #         label.config(text=filename)  # Update the label with just the filename
             
 
 # Application Execution

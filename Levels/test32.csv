@@ -1,4 +1,4 @@
-Level Name,Stimulus Path,Probability,Value,Index
+Level Name,Odor Number,Probability,Value,Index
 L1,2,50,go,1
 L1,4,50,no-go,2
 L2,6,50,go,3
