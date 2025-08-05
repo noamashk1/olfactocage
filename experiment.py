@@ -25,42 +25,58 @@ from datetime import datetime
 # 
 # Process ended with exit code -6.
 ###
+# experiment.py
+# This file manages the main experiment logic, including GUI setup, experiment folder creation, and experiment execution.
+# It uses tkinter for GUI, manages experiment parameters, and handles experiment data storage.
 class Experiment:
     def __init__(self,exp_name, mice_dict: dict[str, Mouse] = None, levels_df = None):
-        
-        
-        self.exp_params = None#ExpParameters(self)
-        self.fsm = None
-        self.live_w = None
-        self.levels_df = levels_df
-        self.mice_dict = mice_dict#self.create_mice(mice_dict)
-        self.results = []
+        """
+        Initialize the Experiment object.
+        - exp_name: Name of the experiment (used for folder and file naming)
+        - mice_dict: Dictionary of Mouse objects (optional)
+        - levels_df: DataFrame or dict of levels (optional)
+        """
+        self.exp_params = None#ExpParameters(self)  # Experiment parameters (set later by GUI)
+        self.fsm = None  # Finite State Machine for experiment logic
+        self.live_w = None  # Live window for real-time display (set later)
+        self.levels_df = levels_df  # Levels data
+        self.mice_dict = mice_dict#self.create_mice(mice_dict)  # Mice data
+        self.results = []  # List to store experiment results
         self.stim_length = 2  ########## maybe need to make it for the user choosing
-        self.txt_file_name = exp_name
-        self.txt_file_path = None
-        self.new_txt_file(self.txt_file_name)
-        self.root = tk.Tk()
-        self.GUI = GUI_sections.TkinterApp(self.root, self, exp_name = self.txt_file_name)
-        self.run_experiment()
-        self.root.mainloop()
-        self.root.destroy()
+        self.txt_file_name = exp_name  # Name for the experiment text file
+        self.txt_file_path = None  # Path to the experiment text file
+        self.new_txt_file(self.txt_file_name)  # Create a new text file for results
+        self.root = tk.Tk()  # Main tkinter root window
+        self.GUI = GUI_sections.TkinterApp(self.root, self, exp_name = self.txt_file_name)  # Main GUI app
+        self.run_experiment()  # Start experiment logic
+        self.root.mainloop()  # Start the GUI event loop
+        self.root.destroy()  # Destroy the root window after closing
         
 
     def set_parameters(self, parameters):
-        """This method is called by App when the OK button is pressed."""
+        """
+        Set experiment parameters (called by GUI when user confirms parameters).
+        """
         self.exp_params = parameters
         print("Parameters set in Experiment:", self.exp_params)
 
     def set_mice_dict(self, mice_dict):
-        """This method is called by App when the OK button is pressed."""
+        """
+        Set the mice dictionary (called by GUI when user confirms mice selection).
+        """
         self.mice_dict = mice_dict
 
     def set_levels_df(self, levels_df):
-        """This method is called by App when the OK button is pressed."""
+        """
+        Set the levels DataFrame or dictionary (called by GUI when user confirms levels).
+        """
         self.levels_df = levels_df
         
 
     def new_txt_file(self, filename):
+        """
+        Create a new text file for experiment results in a dedicated folder under ./experiments/filename/.
+        """
         # Build the path: ./experiments/filename/
         folder_path = os.path.join(os.getcwd(), "experiments", filename)
         os.makedirs(folder_path, exist_ok=True)  # Ensure the folder exists
@@ -71,6 +87,10 @@ class Experiment:
             pass
 
     def run_experiment(self):
+        """
+        Wait until experiment parameters are set, then start the experiment in a separate thread.
+        This keeps the GUI responsive while the experiment runs.
+        """
         # Check periodically if parameters have been set
         if self.exp_params is None:
             self.root.after(100,lambda: self.run_experiment())  # Check again after 100ms
@@ -81,30 +101,50 @@ class Experiment:
             threading.Thread(target=self.start_experiment).start()
 
     def start_experiment(self):
-        # This method runs the actual experiment (on a separate thread)
+        """
+        Start the main experiment logic by creating the Finite State Machine (FSM).
+        Runs in a separate thread.
+        """
         fsm = FiniteStateMachine(self)
         self.fsm = fsm
         print("FSM created:", self.fsm)
         
     def run_live_window(self):
+        """
+        Schedule opening the live window (real-time display) in the main GUI thread.
+        """
         self.root.after(0, self.open_live_window)
         
     def open_live_window(self):
+        """
+        Open the live window if it hasn't been opened yet.
+        """
         if self.live_w is None:
             self.live_w = live_window.LiveWindow()#self.GUI
 
     def change_mouse_level(self, mouse: Mouse, new_level: Level):
+        """
+        Change the level of a given mouse.
+        """
         mouse.update_level(new_level)
 
     def save_results(self, filename: str):
+        """
+        Save the experiment results to a JSON file.
+        """
         with open(filename, 'w') as f:
             json.dump(self.results, f, indent=4)
 
+# --- Main script for running experiment setup and execution ---
 if __name__ == "__main__":
-    
+    # Variable to store the created experiment folder name
     created_folder_name = None
-
     def create_experiment_folder():
+        """
+        Create a new experiment folder with the current date appended.
+        If the folder exists, ask the user if they want to use it.
+        Sets the global variable 'created_folder_name' and closes the setup window on success.
+        """
         global created_folder_name
 
         exp_name = entry.get().strip()
@@ -131,7 +171,7 @@ if __name__ == "__main__":
         #messagebox.showinfo("Success", f"Folder ready:\n{full_path}")
         root.destroy()
 
-    # Create the GUI window
+    # Create the GUI window for experiment setup
     root = tk.Tk()
     root.title("Experiment Setup")
     root.geometry("300x120")
@@ -146,6 +186,6 @@ if __name__ == "__main__":
 
     root.mainloop()
 
-#     # Create an experiment
+    # After the setup window closes, create the Experiment object
     experiment = Experiment(exp_name = created_folder_name)#, mice_dict={mouse_1.get_id():mouse_1, mouse_2.get_id():mouse_2}, levels_df={1: level_1, 2: level_2})
 
