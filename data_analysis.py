@@ -1,4 +1,3 @@
-
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import pandas as pd
@@ -19,7 +18,7 @@ class DataAnalysis:
     def __init__(self, root):
         self.root = root
         self.root.title("Mouse Data Viewer")
-        self.root.geometry("300x250")
+        self.root.geometry("300x350")
         self.df = None
 
         self.load_button = tk.Button(root, text="Load txt", command=self.load_txt)
@@ -45,6 +44,10 @@ class DataAnalysis:
 
         self.graph_button = tk.Button(root, text="Graph", command=self.open_graph_window)
         self.graph_button.pack(pady=10)
+
+        # כפתור לעקומה פסיכומטרית
+        self.psychometric_button = tk.Button(root, text="Psychometric Curve", command=self.plot_psychometric_curve)
+        self.psychometric_button.pack(pady=10)
 
     def load_txt(self):
         file_path = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")])
@@ -97,7 +100,9 @@ class DataAnalysis:
         new_window = tk.Toplevel(self.root)
         new_window.title(f"Graphs for Mouse {selected_id}")
 
-        score_counts = mouse_data['score'].value_counts().reindex(['HIT', 'FA', 'MISS', 'CR'], fill_value=0)
+        #score_counts = mouse_data['score'].value_counts().reindex(['HIT', 'FA', 'MISS', 'CR'], fill_value=0)
+        recent_data = mouse_data.tail(500)
+        score_counts = recent_data['score'].value_counts().reindex(['HIT', 'FA', 'MISS', 'CR'], fill_value=0)
 
         fig, axs = plt.subplots(2, 1, figsize=(8, 8))
         fig.tight_layout(pad=3.0)
@@ -127,6 +132,78 @@ class DataAnalysis:
         axs[1].set_ylabel("d-prime")
         axs[1].set_xticks(trial_indices)
 
+        canvas = FigureCanvasTkAgg(fig, master=new_window)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+    def plot_psychometric_curve(self):
+        if self.df is None:
+            return
+
+        selected_id = self.mouse_id_combobox.get().strip()
+        if not selected_id:
+            return
+
+        mouse_data = self.df[self.df['mouse ID'] == selected_id]
+        if mouse_data.empty:
+            messagebox.showwarning("Warning", f"No data found for Mouse ID: {selected_id}")
+            return
+
+        # ננקה שמות תדרים (נסיר סיומות npz/npy)
+        def extract_freq(stim_name):
+            name = stim_name.upper().replace('.NPZ','').replace('.NPY','')
+            for suf in ['KHZ','KHz','KHZ']:
+                if suf in name:
+                    freq = name.replace('KHZ','').replace('KHz','').replace('KHZ','').strip()
+                    return freq.replace('-', '.')
+            return name.replace('-', '.')
+
+        mouse_data = mouse_data.copy()
+        mouse_data = mouse_data.tail(4000)
+        mouse_data['freq'] = mouse_data['stim name'].apply(extract_freq)
+        mouse_data['stim name'] = mouse_data['stim name'].str.upper()
+
+        # נזהה תדרים רלוונטיים
+        freq_to_stim = {}
+        for stim in mouse_data['stim name'].unique():
+            freq = extract_freq(stim)
+            freq_to_stim[freq] = stim
+
+        results = {}
+        for freq, stim in freq_to_stim.items():
+            stim_trials = mouse_data[mouse_data['stim name'] == stim]
+            total = len(stim_trials)
+            print("freq: " + freq + ", len: " + str(total))
+            if total == 0:
+                continue
+            if freq == '7':
+                hits = (stim_trials['score'] == 'HIT').sum()
+                percent = (hits / total) * 100
+            elif freq == '14':
+                fa = (stim_trials['score'] == 'FA').sum()
+                percent = (fa / total) * 100
+            else:
+                # אחוז ה-catch response: כל התגובות (לא MISS) מתוך כלל ה-catch
+                catch_responses = (stim_trials['score'] == 'CATCH - RESPONSE').sum()
+                percent = (catch_responses / total) * 100
+            results[freq] = percent
+
+        # סדר תדרים מספרית (תמיכה ב-10-5 -> 10.5)
+        sorted_freqs = sorted(results.keys(), key=lambda x: float(x.replace('-', '.')))
+        y = [results[f] for f in sorted_freqs]
+        x_labels = [f + ' KHz' for f in sorted_freqs]
+
+        # ציור הגרף
+        fig, ax = plt.subplots(figsize=(8,5))
+        ax.plot(x_labels, y, marker='o', linestyle='-', color='purple')
+        ax.set_title(f"Psychometric Curve for Mouse {selected_id}")
+        ax.set_xlabel("Frequency")
+        ax.set_ylabel("% Response")
+        ax.set_ylim(0, 105)
+        ax.grid(True)
+
+        new_window = tk.Toplevel(self.root)
+        new_window.title(f"Psychometric Curve for Mouse {selected_id}")
         canvas = FigureCanvasTkAgg(fig, master=new_window)
         canvas.draw()
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
