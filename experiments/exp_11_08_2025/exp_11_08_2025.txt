@@ -1,0 +1,2 @@
+date,start time,end time,mouse ID,level,go\no-go,stim index,stim name,score,licks_time
+2025-08-11,17:45:22.267728,17:45:24.788719,0007DECB4A,L1,go,1,2,hit,['17:45:22.511671']

@@ -1,0 +1,145 @@
+
+--- 2025-08-11 16:34:43 ---
+
+Levels:
+Level Name  Odor Number  Probability Value  Index
+        L1            2           50    go      1
+        L1            4           50 no-go      2
+        L2            6           50    go      3
+        L2            8           50 catch      4
+
+Mice:
+ID: 0007DECB4A, Level:L2
+ID: 0007DEC04C, Level:L1
+
+Parameters:
+lick_time: 1
+lick_time_bin_size: None
+start_trial_option: 1
+start_trial_time: None
+IR_no_RFID_option: Take the Last RFID
+lick_threshold: 5
+time_to_lick_after_stim: 2
+open_valve_duration: 0.017
+open_odor_duration: 0.5
+ITI: 1
+ITI_time: None
+stimulus_length: 2
+
+----------------------------------------
+
+--- 2025-08-11 17:23:24 ---
+
+Levels:
+Level Name  Odor Number  Probability Value  Index
+        L1            2           50    go      1
+        L1            4           50 no-go      2
+        L2            6           50    go      3
+        L2            8           50 catch      4
+
+Mice:
+ID: 0007DEC04C, Level:L1
+ID: 0007DECB4A, Level:L1
+
+Parameters:
+lick_time: 1
+lick_time_bin_size: None
+start_trial_option: 1
+start_trial_time: None
+IR_no_RFID_option: Take the Last RFID
+lick_threshold: 5
+time_to_lick_after_stim: 2
+open_valve_duration: 0.017
+open_odor_duration: 0.5
+ITI: 1
+ITI_time: None
+stimulus_length: 2
+
+----------------------------------------
+
+--- 2025-08-11 17:42:03 ---
+
+Levels:
+Level Name  Odor Number  Probability Value  Index
+        L1            2           50    go      1
+        L1            4           50 no-go      2
+        L2            6           50    go      3
+        L2            8           50 catch      4
+
+Mice:
+ID: 0007DEC04C, Level:L1
+ID: 0007DECB4A, Level:L1
+
+Parameters:
+lick_time: 1
+lick_time_bin_size: None
+start_trial_option: 1
+start_trial_time: None
+IR_no_RFID_option: Take the Last RFID
+lick_threshold: 5
+time_to_lick_after_stim: 2
+open_valve_duration: 0.017
+open_odor_duration: 0.5
+ITI: 1
+ITI_time: None
+stimulus_length: 2
+
+----------------------------------------
+
+--- 2025-08-11 17:42:38 ---
+
+Levels:
+Level Name  Odor Number  Probability Value  Index
+        L1            2           50    go      1
+        L1            4           50 no-go      2
+        L2            6           50    go      3
+        L2            8           50 catch      4
+
+Mice:
+ID: 0007DEC04C, Level:L1
+ID: 0007DECB4A, Level:L1
+
+Parameters:
+lick_time: 1
+lick_time_bin_size: None
+start_trial_option: 1
+start_trial_time: None
+IR_no_RFID_option: Take the Last RFID
+lick_threshold: 2
+time_to_lick_after_stim: 2
+open_valve_duration: 0.017
+open_odor_duration: 0.5
+ITI: 1
+ITI_time: None
+stimulus_length: 2
+
+----------------------------------------
+
+--- 2025-08-11 17:45:05 ---
+
+Levels:
+Level Name  Odor Number  Probability Value  Index
+        L1            2           50    go      1
+        L1            4           50 no-go      2
+        L2            6           50    go      3
+        L2            8           50 catch      4
+
+Mice:
+ID: 0007DEC04C, Level:L1
+ID: 0007DECB4A, Level:L1
+
+Parameters:
+lick_time: 1
+lick_time_bin_size: None
+start_trial_option: 1
+start_trial_time: None
+IR_no_RFID_option: Take the Last RFID
+lick_threshold: 1
+time_to_lick_after_stim: 2
+open_valve_duration: 0.017
+open_odor_duration: 0.5
+ITI: 1
+ITI_time: None
+stimulus_length: 2
+
+----------------------------------------

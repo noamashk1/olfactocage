@@ -3,7 +3,7 @@ from typing import List, Dict, Any
 import trial
 from level import Level
 from mouse import Mouse
-#from finite_state_machine import FiniteStateMachine
+from finite_state_machine import FiniteStateMachine
 import tkinter as tk
 from tkinter import simpledialog
 import threading
@@ -16,7 +16,7 @@ from datetime import datetime
 
 ###  use those commands on terminal to push changes to git
 
-# cd /home/educage/git_educage2/educage2/pythonProject1
+# cd /home/educage/Projects/olfactocage
 # git add .
 # git commit -m ""
 # git push

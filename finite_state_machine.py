@@ -1,7 +1,7 @@
 
 import serial
 import time
-import RPi.GPIO as GPIO
+import lgpio
 import threading
 from trial import Trial
 from datetime import datetime
@@ -9,16 +9,15 @@ import numpy as np
 import sounddevice as sd
 
 valve_pin = 4#23
-IR_pin = 22#25
+IR_pin = 27#25
 lick_pin = 17#24
+h = lgpio.gpiochip_open(0)
+lgpio.gpio_claim_output(h, valve_pin, 0)
+lgpio.gpio_claim_input(h,IR_pin)
+lgpio.gpio_claim_input(h,lick_pin)
 
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(IR_pin, GPIO.IN)
-GPIO.setup(lick_pin, GPIO.IN)
-GPIO.setup(valve_pin, GPIO.OUT)
 
-GPIO.setwarnings(False)
+
 
 ser = serial.Serial(port='/dev/ttyUSB0', baudrate=9600,
                     timeout=0.01)  # timeout=1  # Change '/dev/ttyS0' to the detected port
@@ -100,7 +99,7 @@ class InPortState(State):
         timeout_seconds = 15  # timeout
         start_time = time.time()
 
-        while GPIO.input(IR_pin) != GPIO.HIGH:
+        while lgpio.gpio_read(h, IR_pin) != 1:
             if time.time() - start_time > timeout_seconds:
                 print("Timeout in InPortState: returning to IdleState")
                 self.on_event("timeout")
@@ -167,15 +166,15 @@ class TrialState(State):
         self.on_event('trial_over')
 
     def give_reward(self):
-        GPIO.output(valve_pin, GPIO.HIGH)
+        lgpio.gpio_write(h, valve_pin, 1)
         #time.sleep(0.03)
         time.sleep(float(self.fsm.exp.exp_params["open_valve_duration"]))
-        GPIO.output(valve_pin, GPIO.LOW)
+        lgpio.gpio_write(h, valve_pin, 0)
 
            
     def give_punishment(self): #after changing to .npz
         try:
-            data = np.load('/home/educage/git_educage2/educage2/pythonProject1/stimuli/white_noise.npz')
+            data = np.load('/home/educage/Projects/olfactocage/stimuli/white_noise.npz')
             noise = data['noise']
             Fs = int(data['Fs'])
             sd.play(noise, samplerate=Fs)
@@ -187,17 +186,19 @@ class TrialState(State):
     def odor_stim(self):
         stim_number = self.fsm.current_trial.current_stim_number
         stim_duration = self.fsm.exp.exp_params["open_odor_duration"]
+        lgpio.gpio_write(h, valve_pin, 1)
+        time.sleep(stim_duration)
 
-        # try:
+        try:
         #     sd.play(stim_array, len(stim_array))
 
-        #     start_time = time.time()
-        #     while time.time() - start_time < stim_duration:
-        #         if self.got_response:
+            start_time = time.time()
+            while time.time() - start_time < stim_duration:
+                if self.got_response:
         #             print("Early response detected — stopping stimulus")
-        #             sd.stop()
-        #             return
-        #         time.sleep(0.05)
+                    sd.stop()
+                    return
+                time.sleep(0.05)
 
         #     sd.wait()
         #     time_to_lick = int(self.fsm.exp.exp_params["time_to_lick_after_stim"])
@@ -228,7 +229,7 @@ class TrialState(State):
         self.got_response = False
         print('waiting for licks...')
         while not stop():
-            if GPIO.input(lick_pin) == GPIO.HIGH:
+            if lgpio.gpio_read(h, lick_pin) == 1: # 1==HIGH
                 self.fsm.exp.live_w.toggle_indicator("lick", "on")
                 self.fsm.current_trial.add_lick_time()
                 counter += 1
@@ -254,7 +255,7 @@ class TrialState(State):
             time.sleep(0.5)
             self.fsm.current_trial.write_trial_to_csv(self.fsm.exp.txt_file_path)
             if self.fsm.exp.exp_params['ITI_time'] is None:
-                while GPIO.input(IR_pin) == GPIO.HIGH:
+                while lgpio.gpio_read(h, IR_pin) == 1:# 1 == HIGH
                     time.sleep(0.09)
                 time.sleep(1) # wait one sec after exit- before pass to the next trial
             else:
