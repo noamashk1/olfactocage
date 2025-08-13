@@ -114,6 +114,16 @@ class ParametersApp:
         self.time_open_odor_frame.pack(anchor=tk.W,pady=10)
 
 #####################################################################
+        
+        self.timeout_punishment_frame = tk.Frame(root)
+        self.timeout_punishment_label = tk.Label(self.timeout_punishment_frame, text="timeout (punishment) duration (sec):", font=self.font_style)
+        self.timeout_punishment_label.pack(side=tk.LEFT)
+        self.timeout_punishment_entry = tk.Entry(self.timeout_punishment_frame, font=self.font_style, width=5)
+        self.timeout_punishment_entry.insert(0,"5")
+        self.timeout_punishment_entry.pack(side=tk.LEFT, padx=10)
+        self.timeout_punishment_frame.pack(anchor=tk.W,pady=10)
+
+#####################################################################
         self.ITI_display_option = tk.StringVar(value='1')  # Default to 1
 
         # Radiobuttons frame

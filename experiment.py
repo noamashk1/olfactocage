@@ -47,7 +47,7 @@ class Experiment:
         self.txt_file_path = None  # Path to the experiment text file
         self.new_txt_file(self.txt_file_name)  # Create a new text file for results
         self.GPIO_dict = {
-                1: 5,
+                1: 4,
                 2: 6,
                 3: 13,
                 4: 19,

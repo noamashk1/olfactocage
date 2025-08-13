@@ -166,10 +166,11 @@ class TrialState(State):
         self.on_event('trial_over')
 
     def give_reward(self):
-        lgpio.gpio_write(h, valve_pin, 1)
-        #time.sleep(0.03)
-        time.sleep(float(self.fsm.exp.exp_params["open_valve_duration"]))
-        lgpio.gpio_write(h, valve_pin, 0)
+        try:
+            self.valve_on(valve_pin)
+            time.sleep(float(self.fsm.exp.exp_params["open_valve_duration"]))
+        finally:
+            self.valve_off(valve_pin)
 
            
     def give_punishment(self): #after changing to .npz
@@ -181,40 +182,49 @@ class TrialState(State):
             sd.wait()
         finally:
             self.fsm.exp.live_w.toggle_indicator("stim", "off")
-            time.sleep(5) #timeout as punishment
+            print("timeout - punishment")
+            time.sleep(float(self.fsm.exp.exp_params["timeout_punishment"])) #timeout as punishment
+            
+    def valve_on(self, gpio_number):
+        lgpio.gpio_write(h, gpio_number, 1)
+        
+    def valve_off(self, gpio_number):
+        lgpio.gpio_write(h, gpio_number, 0)
+    
 
     def odor_stim(self):
         stim_number = self.fsm.current_trial.current_stim_number
-        stim_duration = self.fsm.exp.exp_params["open_odor_duration"]
-        lgpio.gpio_write(h, valve_pin, 1)
-        time.sleep(stim_duration)
-
+        stim_duration = float(self.fsm.exp.exp_params["open_odor_duration"])
+        odor_gpio = self.fsm.exp.GPIO_dict[stim_number]
+        
         try:
-        #     sd.play(stim_array, len(stim_array))
-
+            self.valve_on(odor_gpio)
+            self.fsm.exp.live_w.toggle_indicator("stim", "on")
             start_time = time.time()
             while time.time() - start_time < stim_duration:
                 if self.got_response:
-        #             print("Early response detected — stopping stimulus")
-                    sd.stop()
-                    return
-                time.sleep(0.05)
+                    print("Early response detected — closing valve early")
+                    break
+                time.sleep(0.05)  # בדיקה כל 50ms
 
-        #     sd.wait()
-        #     time_to_lick = int(self.fsm.exp.exp_params["time_to_lick_after_stim"])
-        #     print("Stimulus done. Waiting post-stim lick window...")
+        finally:
+            self.valve_off(odor_gpio)
+            self.fsm.exp.live_w.toggle_indicator("stim", "off")
+        
+        time_to_lick = int(self.fsm.exp.exp_params["time_to_lick_after_stim"])
+        print("Valve closed. Waiting post-stim lick window...")
 
-        #     start_post = time.time()
-        #     while time.time() - start_post < time_to_lick:
-        #         if self.got_response:
-        #             print("Early response during post-stim window — skipping rest")
-        #             return
-        #         time.sleep(0.05)
+        start_post = time.time()
+        while time.time() - start_post < time_to_lick:
+            if self.got_response:
+                print("Early response during post-stim window — skipping rest")
+                return
+            time.sleep(0.05)
 
-        #     print("Post-stim lick window completed.")
-            
-        # finally:
-        #     self.fsm.exp.live_w.toggle_indicator("stim", "off")
+
+
+
+
             
             
     def receive_input(self, stop):
@@ -224,7 +234,6 @@ class TrialState(State):
             pass
         elif self.fsm.exp.exp_params["lick_time"] == "2":
             time.sleep(int(self.fsm.exp.exp_params["stimulus_length"]))
-
         counter = 0
         self.got_response = False
         print('waiting for licks...')
