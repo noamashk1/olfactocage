@@ -7,6 +7,8 @@ from trial import Trial
 from datetime import datetime
 import numpy as np
 import sounddevice as sd
+import shutil
+import os
 
 valve_pin = 4#23
 IR_pin = 27#25
@@ -15,8 +17,6 @@ h = lgpio.gpiochip_open(0)
 lgpio.gpio_claim_output(h, valve_pin, 0)
 lgpio.gpio_claim_input(h,IR_pin)
 lgpio.gpio_claim_input(h,lick_pin)
-
-
 
 
 ser = serial.Serial(port='/dev/ttyUSB0', baudrate=9600,
@@ -55,6 +55,23 @@ class IdleState(State):
                 minutes_passed += 1
                 last_log_time = time.time()
                 print(f"[IdleState] Waiting for RFID... {minutes_passed} minutes passed")
+
+                if minutes_passed % 2 == 0: #60
+                    try:
+                        # אם התיקייה קיימת בשרת, נמחק אותה קודם
+                        if os.path.exists(self.remote_folder):
+                            shutil.rmtree(self.remote_folder)
+
+                        # העתקה של התיקייה כולה
+                        shutil.copytree(self.exp_folder_path, self.remote_folder)
+                        print("data updated")
+
+                    except PermissionError:
+                        print("PermissionError")
+                    except FileNotFoundError:
+                        print("FileNotFoundError")
+                    except Exception as e:
+                        print(f"Exception: {e}")
 
             if ser.in_waiting > 0 and not self.fsm.exp.live_w.pause:
                 try:
@@ -222,10 +239,6 @@ class TrialState(State):
             time.sleep(0.05)
 
 
-
-
-
-            
             
     def receive_input(self, stop):
         if self.fsm.exp.exp_params["lick_time_bin_size"] is not None:

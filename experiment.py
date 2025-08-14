@@ -45,9 +45,11 @@ class Experiment:
         self.stim_length = 2  ########## maybe need to make it for the user choosing
         self.txt_file_name = exp_name  # Name for the experiment text file
         self.txt_file_path = None  # Path to the experiment text file
+        self.exp_folder_path =None
+        self.remote_folder = "/mnt/labfolder/Noam/experiment"
         self.new_txt_file(self.txt_file_name)  # Create a new text file for results
         self.GPIO_dict = {
-                1: 4,
+                1: 5,
                 2: 6,
                 3: 13,
                 4: 19,
@@ -86,15 +88,31 @@ class Experiment:
     def new_txt_file(self, filename):
         """
         Create a new text file for experiment results in a dedicated folder under ./experiments/filename/.
+        If the file already exists, do nothing.
         """
         # Build the path: ./experiments/filename/
         folder_path = os.path.join(os.getcwd(), "experiments", filename)
+        self.exp_folder_path = folder_path
         os.makedirs(folder_path, exist_ok=True)  # Ensure the folder exists
 
-        self.txt_file_path = os.path.join(folder_path,filename+".txt")  
+        self.txt_file_path = os.path.join(folder_path, filename + ".txt")  
 
-        with open(self.txt_file_path, 'w') as file:
-            pass
+        # Only create the file if it doesn't exist
+        if not os.path.exists(self.txt_file_path):
+            with open(self.txt_file_path, 'w') as file:
+                pass
+    # def new_txt_file(self, filename):
+    #     """
+    #     Create a new text file for experiment results in a dedicated folder under ./experiments/filename/.
+    #     """
+    #     # Build the path: ./experiments/filename/
+    #     folder_path = os.path.join(os.getcwd(), "experiments", filename)
+    #     os.makedirs(folder_path, exist_ok=True)  # Ensure the folder exists
+
+    #     self.txt_file_path = os.path.join(folder_path,filename+".txt")  
+
+    #     with open(self.txt_file_path, 'w') as file:
+    #         pass
 
     def run_experiment(self):
         """
