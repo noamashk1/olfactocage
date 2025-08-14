@@ -56,14 +56,11 @@ class IdleState(State):
                 last_log_time = time.time()
                 print(f"[IdleState] Waiting for RFID... {minutes_passed} minutes passed")
 
-                if minutes_passed % 2 == 0: #60
+                if minutes_passed % 60 == 0: 
                     try:
-                        # אם התיקייה קיימת בשרת, נמחק אותה קודם
-                        if os.path.exists(self.remote_folder):
-                            shutil.rmtree(self.remote_folder)
-
-                        # העתקה של התיקייה כולה
-                        shutil.copytree(self.exp_folder_path, self.remote_folder)
+                        src = self.fsm.exp.exp_folder_path
+                        dst = os.path.join(self.fsm.exp.remote_folder, os.path.basename(src))
+                        shutil.copytree(src, dst, dirs_exist_ok=True)
                         print("data updated")
 
                     except PermissionError:

@@ -46,7 +46,7 @@ class Experiment:
         self.txt_file_name = exp_name  # Name for the experiment text file
         self.txt_file_path = None  # Path to the experiment text file
         self.exp_folder_path =None
-        self.remote_folder = "/mnt/labfolder/Noam/experiment"
+        self.remote_folder = "/mnt/labfolder/Noam/results"
         self.new_txt_file(self.txt_file_name)  # Create a new text file for results
         self.GPIO_dict = {
                 1: 5,
