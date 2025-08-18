@@ -152,7 +152,7 @@ class TrialState(State):
         self.fsm.current_trial.calculate_stim()
         self.fsm.exp.live_w.update_trial_value(self.fsm.current_trial.current_value)
 
-        stim_thread = threading.Thread(target=self.odor_stim)
+        stim_thread = threading.Thread(target=self.odor_stim, args=(lambda: self.stop_threads,))
         input_thread = threading.Thread(target=self.receive_input, args=(lambda: self.stop_threads,))
         
         stim_thread.start()
@@ -206,7 +206,7 @@ class TrialState(State):
         lgpio.gpio_write(h, gpio_number, 0)
     
 
-    def odor_stim(self):
+    def odor_stim(self, stop):
         stim_number = self.fsm.current_trial.current_stim_number
         stim_duration = float(self.fsm.exp.exp_params["open_odor_duration"])
         odor_gpio = self.fsm.exp.GPIO_dict[stim_number]
@@ -216,7 +216,7 @@ class TrialState(State):
             self.fsm.exp.live_w.toggle_indicator("stim", "on")
             start_time = time.time()
             while time.time() - start_time < stim_duration:
-                if self.got_response:
+                if stop(): # self.got_response
                     print("Early response detected — closing valve early")
                     break
                 time.sleep(0.05)  # בדיקה כל 50ms
@@ -230,7 +230,7 @@ class TrialState(State):
 
         start_post = time.time()
         while time.time() - start_post < time_to_lick:
-            if self.got_response:
+            if stop(): #self.got_response
                 print("Early response during post-stim window — skipping rest")
                 return
             time.sleep(0.05)
@@ -243,7 +243,7 @@ class TrialState(State):
         elif self.fsm.exp.exp_params["lick_time"] == "1":
             pass
         elif self.fsm.exp.exp_params["lick_time"] == "2":
-            time.sleep(int(self.fsm.exp.exp_params["stimulus_length"]))
+            time.sleep(int(self.fsm.exp.exp_params["stimulus_length"]))# maybe i need to fix it because the stimulus will be shorter in very fast response
         counter = 0
         self.got_response = False
         print('waiting for licks...')
@@ -259,8 +259,6 @@ class TrialState(State):
                 if counter >= int(self.fsm.exp.exp_params["lick_threshold"]) and not self.got_response:
                     self.got_response = True
                     print('threshold reached')
-
-
                     break
 
             time.sleep(0.08)
