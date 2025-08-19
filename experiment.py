@@ -13,6 +13,7 @@ import os
 import tkinter as tk
 from tkinter import messagebox
 from datetime import datetime
+import numpy as np
 
 ###  use those commands on terminal to push changes to git
 
@@ -60,6 +61,10 @@ class Experiment:
             }
         self.root = tk.Tk()  # Main tkinter root window
         self.GUI = GUI_sections.TkinterApp(self.root, self, exp_name = self.txt_file_name)  # Main GUI app
+        # Preload punishment noise once
+        self.white_noise = None
+        self.white_noise_fs = None
+        self.preload_white_noise()
         self.run_experiment()  # Start experiment logic
         self.root.mainloop()  # Start the GUI event loop
         self.root.destroy()  # Destroy the root window after closing
@@ -84,6 +89,15 @@ class Experiment:
         """
         self.levels_df = levels_df
         
+    def preload_white_noise(self):
+        """Load white noise once into memory (noise array and sampling rate)."""
+        path = '/home/educage/Projects/olfactocage/stimuli/white_noise.npz'
+        data = np.load(path)
+        noise = data['data']
+        fs = int(data['Fs'])
+        self.white_noise = noise
+        self.white_noise_fs = fs
+
 
     def new_txt_file(self, filename):
         """
@@ -221,7 +235,7 @@ class Experiment:
         save_btn.pack(pady=5)
 
 # --- Main script for running experiment setup and execution ---
-if __name__ == "__main__":
+if __name__ == "__main__":r
     # Variable to store the created experiment folder name
     created_folder_name = None
     def create_experiment_folder():

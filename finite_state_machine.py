@@ -189,11 +189,18 @@ class TrialState(State):
            
     def give_punishment(self): #after changing to .npz
         try:
-            data = np.load('/home/educage/Projects/olfactocage/stimuli/white_noise.npz')
-            noise = data['noise']
-            Fs = int(data['Fs'])
-            sd.play(noise, samplerate=Fs)
-            sd.wait()
+            # data = np.load('/home/educage/Projects/olfactocage/stimuli/white_noise.npz')
+            # noise = data['noise']
+            # Fs = int(data['Fs'])
+            # sd.play(noise, samplerate=Fs)
+            # sd.wait()
+            # Prefer preloaded noise from the experiment instance
+            if getattr(self.fsm.exp, 'white_noise', None) is not None and getattr(self.fsm.exp, 'white_noise_fs', None) is not None:
+                sd.play(self.fsm.exp.white_noise, samplerate=self.fsm.exp.white_noise_fs)
+                sd.wait()
+            else:
+                # if preloading failed
+                print("preloading of the noise failed!")
         finally:
             self.fsm.exp.live_w.toggle_indicator("stim", "off")
             print("timeout - punishment")
