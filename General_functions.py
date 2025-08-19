@@ -1,6 +1,7 @@
 import numpy as np
 import sounddevice as sd
 import tkinter as tk
+import os
 
 def center_the_window(window,size=None):
     # Implicitly set dimensions for example purposes
@@ -118,3 +119,98 @@ def generate_white_noise_npz(duration, Fs, voltage, save_path='/home/educage/git
 
 #generate_white_noise_npz(duration=1, Fs=44100, voltage=0.8)
 
+
+def scary_with_ultrasonic(duration=3.0, sample_rate=192000, click_rate=10, save_path: str | None = None):
+    """
+    מוסיף גם רכיב על-קולי בתדרים שהעכברים שומעים (אנחנו לא).
+    חשוב להשתמש בכרטיס קול שיכול לנגן עד 192kHz!
+    """
+    t = np.linspace(0, duration, int(sample_rate*duration), endpoint=False)
+
+    # --- תדרים צורמים בתוך טווח השמיעה שלנו ---
+    f1, f2, f3 = 15000, 15500, 16000
+    tone_audible = (
+        0.25 * np.sin(2 * np.pi * f1 * t) +
+        0.25 * np.sin(2 * np.pi * f2 * t) +
+        0.25 * np.sin(2 * np.pi * f3 * t)
+    )
+
+    # --- רכיב על-קולי (עכברים בלבד) ---
+    f4, f5 = 25000, 35000  # 25–35 kHz
+    tone_ultra = (
+        0.25 * np.sin(2 * np.pi * f4 * t) +
+        0.25 * np.sin(2 * np.pi * f5 * t)
+    )
+
+    # --- רעש לבן ---
+    noise = 0.3 * np.random.normal(0, 1, len(t))
+
+    # --- נקישות ---
+    click_signal = np.zeros_like(t)
+    click_interval = int(sample_rate / click_rate)
+    click_len = int(0.002 * sample_rate)  # 2ms
+    for i in range(0, len(t), click_interval):
+        click_signal[i:i+click_len] = 1.0
+
+    # שילוב הכל
+    signal = tone_audible + tone_ultra + noise + click_signal
+    signal = signal / np.max(np.abs(signal))
+
+    # השמעה
+    sd.play(signal, samplerate=sample_rate)
+    sd.wait()
+
+    # שמירה כ-NPZ (בדומה ל-General_functions.generate_white_noise_npz)
+    if save_path:
+        try:
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            # נשמור גם במפתחות כפולים לתאימות ('noise','Fs') וגם ('data','rate')
+            np.savez(save_path, data=signal, Fs=sample_rate)
+            print("stimulus saved")
+        except Exception as e:
+            print(f"[save npz] failed to save '{save_path}': {e}")
+
+
+scary_with_ultrasonic(2, click_rate=15, save_path = '/home/educage/Projects/olfactocage/stimuli/scary_noise_with_ultrasonic.npz')
+
+def scary_with_clicks(duration=3.0, sample_rate=44100, click_rate=10, save_path: str | None = None):
+    t = np.linspace(0, duration, int(sample_rate*duration), endpoint=False)
+
+    # --- בסיס: תדרים צורמים ---
+    f1, f2, f3 = 15000, 15500, 16000
+    tone = (
+        0.3 * np.sin(2 * np.pi * f1 * t) +
+        0.3 * np.sin(2 * np.pi * f2 * t) +
+        0.3 * np.sin(2 * np.pi * f3 * t)
+    )
+
+    # --- הוספת רעש לבן ---
+    noise = 0.2 * np.random.normal(0, 1, len(t))
+
+    # --- יצירת נקישות ---
+    click_signal = np.zeros_like(t)
+    click_interval = int(sample_rate / click_rate)  # כל כמה דגימות נקישה
+    click_len = int(0.002 * sample_rate)  # נקישה של 2ms
+    for i in range(0, len(t), click_interval):
+        click_signal[i:i+click_len] = 1.0  # פולס קצר
+
+    # שילוב הכל
+    signal = tone + noise + click_signal
+
+    # נרמול
+    signal = signal / np.max(np.abs(signal))
+
+    # השמעה
+    sd.play(signal, samplerate=sample_rate)
+    sd.wait()
+
+    # שמירה כ-NPZ (בדומה ל-General_functions.generate_white_noise_npz)
+    if save_path:
+        try:
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            np.savez(save_path, data=signal, Fs=sample_rate)
+            print("stimulus saved")
+        except Exception as e:
+            print(f"[save npz] failed to save '{save_path}': {e}")
+
+scary_with_clicks(duration=2, click_rate=12, save_path = '/home/educage/Projects/olfactocage/stimuli/scary_noise.npz') 

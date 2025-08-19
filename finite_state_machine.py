@@ -79,7 +79,7 @@ class IdleState(State):
 
                 if self.recognize_mouse(mouse_id):
                     self.fsm.current_trial.update_current_mouse(self.fsm.exp.mice_dict[mouse_id])
-                    print("mouse: " + self.fsm.exp.mice_dict[mouse_id].get_id())
+                    print("\nmouse: " + self.fsm.exp.mice_dict[mouse_id].get_id())
                     print("Level: " + self.fsm.exp.mice_dict[mouse_id].get_level())
                     self.fsm.exp.live_w.update_last_rfid(mouse_id)
                     self.fsm.exp.live_w.update_level(self.fsm.exp.mice_dict[mouse_id].get_level())
@@ -97,7 +97,7 @@ class IdleState(State):
 
     def recognize_mouse(self, data: str):
         if data in self.fsm.exp.mice_dict:
-            print('recognized mouse: ' + data)
+            #print('recognized mouse: ' + data)
             return True
         else:
             print("mouse ID: '" + data + "' does not exist in the mouse dictionary.")

@@ -206,7 +206,8 @@ class MainApp:
             mouse_name = mouse_label.cget("text")
             data[mouse_name] = Mouse(mouse_name, selected_level)
         self.mice_dict = data
-        print(data)
+        print(f"mice list: {list(data.keys())}")
+
 
 
 # import tkinter as tk

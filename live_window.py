@@ -5,7 +5,6 @@ import sys
 class LiveWindow:
     def __init__(self):
         # Create the main window
-        print('live_window constructor')
         self.root = tk.Toplevel()
         self.root.title("Live Window")
         self.root.geometry("300x530")  # Set the window dimensions to 400x600 pixels

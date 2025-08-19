@@ -75,7 +75,7 @@ class Experiment:
         Set experiment parameters (called by GUI when user confirms parameters).
         """
         self.exp_params = parameters
-        print("Parameters set in Experiment:", self.exp_params)
+        print("Parameters set in Experiment:\n", self.exp_params)
 
     def set_mice_dict(self, mice_dict):
         """
@@ -91,12 +91,15 @@ class Experiment:
         
     def preload_white_noise(self):
         """Load white noise once into memory (noise array and sampling rate)."""
-        path = '/home/educage/Projects/olfactocage/stimuli/white_noise.npz'
-        data = np.load(path)
-        noise = data['data']
-        fs = int(data['Fs'])
-        self.white_noise = noise
-        self.white_noise_fs = fs
+        path = '/home/educage/Projects/olfactocage/stimuli/scary_noise.npz'
+        try:
+             data = np.load(path)
+             noise = data['noise']
+             fs = int(data['Fs'])
+             self.white_noise = noise
+             self.white_noise_fs = fs
+        except:
+            print("preloaded failed")
 
 
     def new_txt_file(self, filename):
@@ -137,7 +140,7 @@ class Experiment:
         if self.exp_params is None:
             self.root.after(100,lambda: self.run_experiment())  # Check again after 100ms
         else:
-            print("Parameters received.")
+            #print("Parameters received.")
             # Proceed with the experiment once parameters are set
             # Start experiment in a separate thread to keep the GUI responsive
             threading.Thread(target=self.start_experiment).start()
