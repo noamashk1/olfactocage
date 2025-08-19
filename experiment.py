@@ -235,7 +235,7 @@ class Experiment:
         save_btn.pack(pady=5)
 
 # --- Main script for running experiment setup and execution ---
-if __name__ == "__main__":r
+if __name__ == "__main__":
     # Variable to store the created experiment folder name
     created_folder_name = None
     def create_experiment_folder():
