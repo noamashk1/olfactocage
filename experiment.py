@@ -91,7 +91,7 @@ class Experiment:
         
     def preload_white_noise(self):
         """Load white noise once into memory (noise array and sampling rate)."""
-        path = '/home/educage/Projects/olfactocage/stimuli/scary_noise.npz'
+        path = '/home/educage/Projects/olfactocage/stimuli/white_noise.npz'
         try:
              data = np.load(path)
              noise = data['noise']
