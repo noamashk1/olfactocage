@@ -9,19 +9,32 @@ import numpy as np
 import sounddevice as sd
 import shutil
 import os
+import psutil
 
 valve_pin = 4#23
 IR_pin = 27#25
 lick_pin = 17#24
+exit_odor_valve_pin = 21
 h = lgpio.gpiochip_open(0)
 lgpio.gpio_claim_output(h, valve_pin, 0)
 lgpio.gpio_claim_input(h,IR_pin)
 lgpio.gpio_claim_input(h,lick_pin)
 
-
 ser = serial.Serial(port='/dev/ttyUSB0', baudrate=9600,
                     timeout=0.01)  # timeout=1  # Change '/dev/ttyS0' to the detected port
+LOG_FILE = "debug_log.txt"
+process = psutil.Process(os.getpid())
 
+def log_message(message: str):
+    """Write message to log file with timestamp."""
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open(LOG_FILE, "a", encoding="utf-8") as f:
+        f.write(f"[{timestamp}] {message}\n")
+
+def log_memory_usage(tag=""):
+    """Log current memory usage in MB."""
+    mem = process.memory_info().rss / (1024 * 1024)  # in MB
+    log_message(f"[MEM] {tag} Memory usage: {mem:.2f} MB")
 
 class State:
     def __init__(self, name, fsm):
@@ -43,6 +56,8 @@ class IdleState(State):
         self.fsm.exp.live_w.update_score('')
         self.fsm.exp.live_w.update_trial_value('')
 
+        log_memory_usage("Enter Idle")
+
         threading.Thread(target=self.wait_for_event, daemon=True).start()
         
     def wait_for_event(self):
@@ -56,7 +71,7 @@ class IdleState(State):
                 last_log_time = time.time()
                 print(f"[IdleState] Waiting for RFID... {minutes_passed} minutes passed")
 
-                if minutes_passed % 60 == 0: 
+                if minutes_passed % 10 == 0: 
                     try:
                         src = self.fsm.exp.exp_folder_path
                         dst = os.path.join(self.fsm.exp.remote_folder, os.path.basename(src))
@@ -69,6 +84,9 @@ class IdleState(State):
                         print("FileNotFoundError")
                     except Exception as e:
                         print(f"Exception: {e}")
+
+                if minutes_passed % 5 == 0:
+                    log_memory_usage("IdleState periodic check")
 
             if ser.in_waiting > 0 and not self.fsm.exp.live_w.pause:
                 try:
@@ -217,9 +235,10 @@ class TrialState(State):
         stim_number = self.fsm.current_trial.current_stim_number
         stim_duration = float(self.fsm.exp.exp_params["open_odor_duration"])
         odor_gpio = self.fsm.exp.GPIO_dict[stim_number]
-        
+        self.valve_on(odor_gpio)
+        time.sleep(float(self.fsm.exp.exp_params["load_odor_duration"]))
         try:
-            self.valve_on(odor_gpio)
+            self.valve_on(exit_odor_valve_pin)
             self.fsm.exp.live_w.toggle_indicator("stim", "on")
             start_time = time.time()
             while time.time() - start_time < stim_duration:
@@ -229,6 +248,7 @@ class TrialState(State):
                 time.sleep(0.05)  # בדיקה כל 50ms
 
         finally:
+            self.valve_off(exit_odor_valve_pin)
             self.valve_off(odor_gpio)
             self.fsm.exp.live_w.toggle_indicator("stim", "off")
         

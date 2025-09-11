@@ -115,6 +115,16 @@ class ParametersApp:
 
 #####################################################################
         
+        self.load_odor_duration_frame = tk.Frame(root)
+        self.load_odor_duration_label = tk.Label(self.load_odor_duration_frame, text="load odor duration (sec):", font=self.font_style)
+        self.load_odor_duration_label.pack(side=tk.LEFT)
+        self.load_odor_duration_entry = tk.Entry(self.load_odor_duration_frame, font=self.font_style, width=5)
+        self.load_odor_duration_entry.insert(0,"1")
+        self.load_odor_duration_entry.pack(side=tk.LEFT, padx=10)
+        self.load_odor_duration_frame.pack(anchor=tk.W,pady=10)
+
+#####################################################################
+        
         self.timeout_punishment_frame = tk.Frame(root)
         self.timeout_punishment_label = tk.Label(self.timeout_punishment_frame, text="timeout (punishment) duration (sec):", font=self.font_style)
         self.timeout_punishment_label.pack(side=tk.LEFT)

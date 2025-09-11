@@ -10,6 +10,7 @@ class LiveWindow:
         self.root.geometry("300x530")  # Set the window dimensions to 400x600 pixels
         
         self.pause = False
+        self.activate_window = False
         # Create title label
         title_label = tk.Label(self.root, text="Live Window", font=("Arial", 16))
         title_label.pack(pady=(10, 5), anchor='w')  # Left align title with some padding
@@ -59,6 +60,17 @@ class LiveWindow:
         self.end_button = tk.Button(self.button_frame, text="End Experiment", command=self.end_experiment)
         self.end_button.pack(side='left', padx=5)
 
+        # Activate Window button (centered under existing buttons)
+        self.activate_button_frame = tk.Frame(self.root)
+        self.activate_button_frame.pack(pady=(0, 20))
+        self.activate_button = tk.Button(self.activate_button_frame, text="Activate Window", command=self.on_activate_window)
+        self.activate_button.pack()
+        
+        try:
+            self._activate_btn_default_bg = self.activate_button.cget("bg")
+        except Exception:
+            self._activate_btn_default_bg = None
+
 
     def create_indicator(self, name):
         frame = tk.Frame(self.root)
@@ -101,6 +113,9 @@ class LiveWindow:
             self.score_value = value_label  
 
         
+    def call_on_ui(self, fn, *args, **kwargs):
+        self.root.after(0, lambda: fn(*args, **kwargs))
+        
     def toggle_indicator(self, bulb_name, turn_to):
         # Check current state and toggle the indicator light
         if turn_to == "on":
@@ -121,6 +136,24 @@ class LiveWindow:
             self.stimulus_bulb.itemconfig(self.indicator_circle, fill=fill)
 
         
+
+    def on_activate_window(self):
+        if self.activate_window == False:
+            self.activate_window = True
+            self.activate_button.config(
+            highlightbackground="green",
+            highlightcolor="green",
+            highlightthickness=3,
+            bg="#ccffcc"
+        )
+        else:
+            self.activate_window = False
+            self.activate_button.config(
+            highlightthickness=0,
+            bg=(self._activate_btn_default_bg if self._activate_btn_default_bg else "#d9d9d9")  # reset to original or a neutral default
+        )
+
+
     def deactivate_states_indicators(self, state_name):
         self.idle_bulb.itemconfig(self.indicator_circle, fill="gray")  
         self.in_port_bulb.itemconfig(self.indicator_circle, fill="gray") 
@@ -135,15 +168,15 @@ class LiveWindow:
 
     def pause_experiment(self):
         self.pause = True
-#         self.main_GUI.able_parameters_buttons()
+        # Highlight the pause button with a light red background
+        self.pause_button.config(state=tk.DISABLED, bg="#ffcccc", activebackground="#ffcccc")
         self.continue_button.config(state=tk.NORMAL)
-        self.pause_button.config(state=tk.DISABLED)
         print("Experiment paused")
 
     def continue_experiment(self):
         self.pause = False
-#         self.main_GUI.disable_parameters_buttons()
-        self.pause_button.config(state=tk.NORMAL)
+        # Restore the pause button's background to default (system default)
+        self.pause_button.config(state=tk.NORMAL, bg=self.root.cget("bg"), activebackground=self.root.cget("bg"))
         self.continue_button.config(state=tk.DISABLED)
         print("Experiment continued")
 
