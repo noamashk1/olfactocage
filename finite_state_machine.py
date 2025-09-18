@@ -10,6 +10,7 @@ import sounddevice as sd
 import shutil
 import os
 import psutil
+import glob
 
 valve_pin = 4#23
 IR_pin = 27#25
@@ -20,8 +21,17 @@ lgpio.gpio_claim_output(h, valve_pin, 0)
 lgpio.gpio_claim_input(h,IR_pin)
 lgpio.gpio_claim_input(h,lick_pin)
 
-ser = serial.Serial(port='/dev/ttyUSB0', baudrate=9600,
-                    timeout=0.01)  # timeout=1  # Change '/dev/ttyS0' to the detected port
+ports = glob.glob('/dev/ttyUSB*')
+if not ports:
+    raise Exception("No USB serial device found!")
+
+port = ports[0]  # לוקח את הראשון שמצא
+ser = serial.Serial(port=port, baudrate=9600, timeout=0.01)
+print(f"Connected to {port}")
+# 
+# 
+# ser = serial.Serial(port='/dev/ttyUSB0', baudrate=9600,
+#                     timeout=0.01)  # timeout=1  # Change '/dev/ttyS0' to the detected port
 LOG_FILE = "debug_log.txt"
 process = psutil.Process(os.getpid())
 
