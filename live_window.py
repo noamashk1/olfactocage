@@ -59,7 +59,7 @@ class LiveWindow:
 
         self.end_button = tk.Button(self.button_frame, text="End Experiment", command=self.end_experiment)
         self.end_button.pack(side='left', padx=5)
-
+        
         # Activate Window button (centered under existing buttons)
         self.activate_button_frame = tk.Frame(self.root)
         self.activate_button_frame.pack(pady=(0, 20))
@@ -112,10 +112,7 @@ class LiveWindow:
         elif label_text == "score:":
             self.score_value = value_label  
 
-        
-    def call_on_ui(self, fn, *args, **kwargs):
-        self.root.after(0, lambda: fn(*args, **kwargs))
-        
+
     def toggle_indicator(self, bulb_name, turn_to):
         # Check current state and toggle the indicator light
         if turn_to == "on":
@@ -135,8 +132,6 @@ class LiveWindow:
         elif bulb_name =="stim":
             self.stimulus_bulb.itemconfig(self.indicator_circle, fill=fill)
 
-        
-
     def on_activate_window(self):
         if self.activate_window == False:
             self.activate_window = True
@@ -152,7 +147,6 @@ class LiveWindow:
             highlightthickness=0,
             bg=(self._activate_btn_default_bg if self._activate_btn_default_bg else "#d9d9d9")  # reset to original or a neutral default
         )
-
 
     def deactivate_states_indicators(self, state_name):
         self.idle_bulb.itemconfig(self.indicator_circle, fill="gray")  

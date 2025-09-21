@@ -10,7 +10,9 @@ import sounddevice as sd
 import shutil
 import os
 import psutil
+import glob
 
+audio_lock = threading.Lock()
 valve_pin = 4#23
 IR_pin = 27#25
 lick_pin = 17#24
@@ -20,8 +22,17 @@ lgpio.gpio_claim_output(h, valve_pin, 0)
 lgpio.gpio_claim_input(h,IR_pin)
 lgpio.gpio_claim_input(h,lick_pin)
 
-ser = serial.Serial(port='/dev/ttyUSB0', baudrate=9600,
-                    timeout=0.01)  # timeout=1  # Change '/dev/ttyS0' to the detected port
+ports = glob.glob('/dev/ttyUSB*')
+if not ports:
+    raise Exception("No USB serial device found!")
+
+port = ports[0] 
+ser = serial.Serial(port=port, baudrate=9600, timeout=0.01)
+print(f"Connected to {port}")
+
+
+# ser = serial.Serial(port='/dev/ttyUSB0', baudrate=9600,
+#                     timeout=0.01)  # timeo1  # Change '/dev/ttyS0' to the detected port
 LOG_FILE = "debug_log.txt"
 process = psutil.Process(os.getpid())
 
@@ -73,12 +84,9 @@ class IdleState(State):
                 last_log_time = time.time()
                 print(f"[IdleState] Waiting for RFID... {minutes_passed} minutes passed")
 
-                if minutes_passed % 10 == 0: 
+                if minutes_passed % 5 == 0: 
                     try:
-                        src = self.fsm.exp.exp_folder_path
-                        dst = os.path.join(self.fsm.exp.remote_folder, os.path.basename(src))
-                        shutil.copytree(src, dst, dirs_exist_ok=True)
-                        print("data updated")
+                        self.fsm.exp.upload_data()
 
                     except PermissionError:
                         print("PermissionError")
@@ -86,7 +94,7 @@ class IdleState(State):
                         print("FileNotFoundError")
                     except Exception as e:
                         print(f"Exception: {e}")
-
+                 
                 if minutes_passed % 5 == 0:
                     log_memory_usage("IdleState periodic check")
 
@@ -107,9 +115,8 @@ class IdleState(State):
                     self.on_event('in_port')
                     break  
             else:
-                ser.flushInput()
+                #ser.flushInput()
                 time.sleep(0.05)
-
 
     def on_event(self, event):
         if event == 'in_port':
@@ -118,7 +125,6 @@ class IdleState(State):
 
     def recognize_mouse(self, data: str):
         if data in self.fsm.exp.mice_dict:
-            #print('recognized mouse: ' + data)
             return True
         else:
             print("mouse ID: '" + data + "' does not exist in the mouse dictionary.")
@@ -140,14 +146,12 @@ class InPortState(State):
                 self.on_event("timeout")
                 return
             time.sleep(0.09)
-
         if self.fsm.exp.live_w.activate_window:
             self.fsm.exp.live_w.toggle_indicator("IR", "on")
             time.sleep(0.1)
             self.fsm.exp.live_w.toggle_indicator("IR", "off")
         else:
             time.sleep(0.1)
-            
         print("The mouse entered!")
 
         if self.fsm.exp.exp_params["start_trial_time"] is not None:
@@ -176,14 +180,14 @@ class TrialState(State):
         self.fsm.current_trial.start_time = datetime.now().strftime('%H:%M:%S.%f')  # Get current time
         self.fsm.current_trial.calculate_stim()
         if self.fsm.exp.live_w.activate_window:
-            self.fsm.exp.live_w.update_trial_value(self.fsm.current_trial.current_value)
+           self.fsm.exp.live_w.update_trial_value(self.fsm.current_trial.current_value)
 
         stim_thread = threading.Thread(target=self.odor_stim, args=(lambda: self.stop_threads,))
         input_thread = threading.Thread(target=self.receive_input, args=(lambda: self.stop_threads,))
         
         stim_thread.start()
         input_thread.start()
-        
+
         while stim_thread.is_alive():
             if self.got_response:
                 self.stop_threads = True
@@ -206,29 +210,6 @@ class TrialState(State):
 
         self.on_event('trial_over')
 
-    def give_reward(self):
-        try:
-            self.valve_on(valve_pin)
-            time.sleep(float(self.fsm.exp.exp_params["open_valve_duration"]))
-        finally:
-            self.valve_off(valve_pin)
-
-           
-    def give_punishment(self): #after changing to .npz
-        try:
-            # sd.play(self.fsm.exp.white_noise, samplerate=self.fsm.exp.white_noise_fs)
-            # sd.wait()
-            sd.play(self.fsm.exp.white_noise, samplerate=self.fsm.exp.white_noise_fs, blocking=True) 
-        finally:
-            sd.stop()
-            print("timeout - punishment")
-            time.sleep(float(self.fsm.exp.exp_params["timeout_punishment"])) #timeout as punishment
-            
-    def valve_on(self, gpio_number):
-        lgpio.gpio_write(h, gpio_number, 1)
-        
-    def valve_off(self, gpio_number):
-        lgpio.gpio_write(h, gpio_number, 0)
     
 
     def odor_stim(self, stop):
@@ -264,25 +245,28 @@ class TrialState(State):
                 return
             time.sleep(0.05)
 
-
-            
     def receive_input(self, stop):
         if self.fsm.exp.exp_params["lick_time_bin_size"] is not None:
             time.sleep(int(self.fsm.exp.exp_params["lick_time_bin_size"]))
         elif self.fsm.exp.exp_params["lick_time"] == "1":
             pass
         elif self.fsm.exp.exp_params["lick_time"] == "2":
-            time.sleep(int(self.fsm.exp.exp_params["stimulus_length"]))# maybe i need to fix it because the stimulus will be shorter in very fast response
+            time.sleep(int(self.fsm.exp.exp_params["stimulus_length"]))
+
         counter = 0
         self.got_response = False
+        previous_lick_state = 0  # Track previous state for edge detection
         print('waiting for licks...')
         while not stop():
-            if lgpio.gpio_read(h, lick_pin) == 1: # 1==HIGH
+            current_lick_state = lgpio.gpio_read(h, lick_pin)
+            # Only count lick on transition from LOW to HIGH (rising edge)
+            if current_lick_state == 1 and previous_lick_state == 0:  # 1 == HIGH, 0 == LOW
                 if self.fsm.exp.live_w.activate_window:
                     self.fsm.exp.live_w.toggle_indicator("lick", "on")
+                    time.sleep(0.08) #wait for the lick to be visible on the indicator
                 self.fsm.current_trial.add_lick_time()
                 counter += 1
-                time.sleep(0.08)
+                
                 if self.fsm.exp.live_w.activate_window:
                     self.fsm.exp.live_w.toggle_indicator("lick", "off")
                 print("lick detected")
@@ -291,26 +275,67 @@ class TrialState(State):
                     self.got_response = True
                     print('threshold reached')
                     break
-
+            # Update previous state for next iteration
+            previous_lick_state = current_lick_state
             time.sleep(0.08)
 
         if not self.got_response:
             print('no response')
-        print('num of licks:', counter)
+        print('num of licks: ' + str(counter))
+            
+    # def receive_input(self, stop):
+    #     if self.fsm.exp.exp_params["lick_time_bin_size"] is not None:
+    #         time.sleep(int(self.fsm.exp.exp_params["lick_time_bin_size"]))
+    #     elif self.fsm.exp.exp_params["lick_time"] == "1":
+    #         pass
+    #     elif self.fsm.exp.exp_params["lick_time"] == "2":
+    #         time.sleep(int(self.fsm.exp.exp_params["stimulus_length"]))
 
-    def on_event(self, event):
-        if event == 'trial_over':
-            time.sleep(0.5)
-            self.fsm.current_trial.write_trial_to_csv(self.fsm.exp.txt_file_path)
-            if self.fsm.exp.exp_params['ITI_time'] is None:
-                while lgpio.gpio_read(h, IR_pin) == 1:# 1 == HIGH
-                    time.sleep(0.09)
-                time.sleep(1) # wait one sec after exit- before pass to the next trial
-            else:
-                time.sleep(int(self.fsm.exp.exp_params['ITI_time']))
-            print("Transitioning from trial to idle")
-            self.fsm.state = IdleState(self.fsm)
+    #     counter = 0
+    #     self.got_response = False
+    #     print('waiting for licks...')
+    #     while not stop():
+    #         if lgpio.gpio_read(h, lick_pin) == 1: # 1==HIGH
+    #             if self.fsm.exp.live_w.activate_window:
+    #                 self.fsm.exp.live_w.toggle_indicator("lick", "on")
+    #             self.fsm.current_trial.add_lick_time()
+    #             counter += 1
+    #             time.sleep(0.08)
+    #             if self.fsm.exp.live_w.activate_window:
+    #                 self.fsm.exp.live_w.toggle_indicator("lick", "off")
+    #             print("lick detected")
 
+    #             if counter >= int(self.fsm.exp.exp_params["lick_threshold"]) and not self.got_response:
+    #                 self.got_response = True
+    #                 print('threshold reached')
+    #                 break
+
+    #         time.sleep(0.08)
+
+    #     if not self.got_response:
+    #         print('no response')
+    #     print('num of licks:', counter)
+
+    
+    def give_reward(self):
+        self.valve_on(valve_pin)
+        time.sleep(float(self.fsm.exp.exp_params["open_valve_duration"]))
+        self.valve_off(valve_pin)
+
+    def give_punishment(self): #after changing to .npz
+        with audio_lock:
+            sd.stop()
+            try:
+                sd.play(self.fsm.noise, samplerate=self.fsm.noise_Fs, blocking=True) 
+            finally:
+                sd.stop()
+                time.sleep(float(self.fsm.exp.exp_params["timeout_punishment"])) #timeout as punishment
+            
+    def valve_on(self, gpio_number):
+        lgpio.gpio_write(h, gpio_number, 1)
+        
+    def valve_off(self, gpio_number):
+        lgpio.gpio_write(h, gpio_number, 0)
     def evaluate_response(self):
         value = self.fsm.current_trial.current_value
         if value == 'go':
@@ -319,13 +344,35 @@ class TrialState(State):
             return 'fa' if self.got_response else 'cr'
         elif value == 'catch':
             return 'catch - response' if self.got_response else 'catch - no response'
-        
+
+    def on_event(self, event):
+        if event == 'trial_over':
+            time.sleep(0.5)
+            self.fsm.current_trial.write_trial_to_csv(self.fsm.exp.txt_file_path)
+            if self.fsm.exp.exp_params['ITI_time'] is None:
+                while lgpio.gpio_read(h, IR_pin) == 1:# 1 == HIGH
+                    time.sleep(0.09)
+                time.sleep(1)  # wait one sec after exit- before pass to the next trial
+            else:
+                time.sleep(int(self.fsm.exp.exp_params['ITI_time']))
+            print("Transitioning from trial to idle")
+            self.fsm.state = IdleState(self.fsm)
+
 class FiniteStateMachine:
 
     def __init__(self, experiment=None):
         self.exp = experiment
         self.current_trial = Trial(self)
         self.state = IdleState(self)
+        # Load white noise for punishment
+        try:
+            #with np.load('/home/educage/git_educage2/educage2/pythonProject1/stimuli/white_noise.npz', mmap_mode='r') as z:
+            with np.load(os.path.join('stimuli', 'white_noise.npz'), mmap_mode='r') as z:
+                self.noise = z['noise']
+                self.noise_Fs = int(z['Fs'])
+        except FileNotFoundError:
+            print("Warning: white_noise.npz not found, punishment audio will not work")
+
 
     def on_event(self, event):
         self.state.on_event(event)

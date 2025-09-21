@@ -14,6 +14,8 @@ import tkinter as tk
 from tkinter import messagebox
 from datetime import datetime
 import numpy as np
+import subprocess
+import shutil
 
 ###  use those commands on terminal to push changes to git
 
@@ -22,9 +24,7 @@ import numpy as np
 # git commit -m ""
 # git push
 # 
-# corrupted size vs. prev_size while consolidating
-# 
-# Process ended with exit code -6.
+
 ###
 # experiment.py
 # This file manages the main experiment logic, including GUI setup, experiment folder creation, and experiment execution.
@@ -61,10 +61,8 @@ class Experiment:
             }
         self.root = tk.Tk()  # Main tkinter root window
         self.GUI = GUI_sections.TkinterApp(self.root, self, exp_name = self.txt_file_name)  # Main GUI app
-        # Preload punishment noise once
-        self.white_noise = None
-        self.white_noise_fs = None
-        self.preload_white_noise()
+
+        # Starting the experiment
         self.run_experiment()  # Start experiment logic
         self.root.mainloop()  # Start the GUI event loop
         self.root.destroy()  # Destroy the root window after closing
@@ -88,18 +86,6 @@ class Experiment:
         Set the levels DataFrame or dictionary (called by GUI when user confirms levels).
         """
         self.levels_df = levels_df
-        
-    def preload_white_noise(self):
-        """Load white noise once into memory (noise array and sampling rate)."""
-        path = '/home/educage/Projects/olfactocage/stimuli/white_noise.npz'
-        try:
-             data = np.load(path)
-             noise = data['noise']
-             fs = int(data['Fs'])
-             self.white_noise = noise
-             self.white_noise_fs = fs
-        except:
-            print("preloaded failed")
 
 
     def new_txt_file(self, filename):
@@ -112,7 +98,7 @@ class Experiment:
         self.exp_folder_path = folder_path
         os.makedirs(folder_path, exist_ok=True)  # Ensure the folder exists
 
-        self.txt_file_path = os.path.join(folder_path, filename + ".txt")  
+        self.txt_file_path = os.path.join(folder_path,filename+".txt")  
 
         # Only create the file if it doesn't exist
         if not os.path.exists(self.txt_file_path):
@@ -236,6 +222,14 @@ class Experiment:
         # Save button
         save_btn = tk.Button(top, text="Save", command=save_and_close)
         save_btn.pack(pady=5)
+
+    def upload_data(self):
+        subprocess.run(["sudo", "systemctl", "daemon-reload"], check=True)
+        subprocess.run(["sudo", "mount", "-a"], check=True)
+        src = self.exp_folder_path
+        dst = os.path.join(self.remote_folder, os.path.basename(src))
+        shutil.copytree(src, dst, dirs_exist_ok=True)
+        print("data updated")
 
 # --- Main script for running experiment setup and execution ---
 if __name__ == "__main__":
