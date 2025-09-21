@@ -83,3 +83,6 @@
 [2025-09-17 16:52:39] [MEM] IdleState periodic check Memory usage: 194.22 MB
 [2025-09-17 16:57:40] [MEM] IdleState periodic check Memory usage: 194.22 MB
 [2025-09-17 17:02:40] [MEM] IdleState periodic check Memory usage: 194.22 MB
+[2025-09-18 17:18:20] [MEM] Enter Idle Memory usage: 191.05 MB
+[2025-09-18 17:18:36] [MEM] Enter Idle Memory usage: 191.55 MB
+[2025-09-18 17:18:42] [MEM] Enter Idle Memory usage: 191.55 MB
