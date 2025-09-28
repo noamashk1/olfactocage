@@ -4,6 +4,7 @@ from tkinter import ttk  # Make sure to import ttk for the Combobox
 import csv  # To handle CSV writing
 from tkinter import filedialog  # To open the file dialog for saving files
 import os
+from column_constants import ColumnNames
 
 
 class LevelDefinitionApp:
@@ -19,8 +20,8 @@ class LevelDefinitionApp:
         self.save_button = None  # Initially set to None, to be defined later
         
         # Create header row for the first table
-        tk.Label(self.frame, text="Level Name", font=("Arial", 12, "bold")).grid(row=0, column=0, padx=5, pady=5)
-        tk.Label(self.frame, text="Number of Stimuli", font=("Arial", 12, "bold")).grid(row=0, column=1, padx=5, pady=5)
+        tk.Label(self.frame, text=ColumnNames.LEVEL_NAME, font=("Arial", 12, "bold")).grid(row=0, column=0, padx=5, pady=5)
+        tk.Label(self.frame, text=ColumnNames.NUMBER_OF_STIMULI, font=("Arial", 12, "bold")).grid(row=0, column=1, padx=5, pady=5)
 
         # Current row index for the first table
         self.current_row = 1
@@ -62,11 +63,11 @@ class LevelDefinitionApp:
         
     def header_titles(self):
         # Create header for the stimuli table
-        tk.Label(self.stimuli_frame, text="Level Name", font=("Arial", 12, "bold")).grid(row=0, column=0, padx=5, pady=5)
-        tk.Label(self.stimuli_frame, text="Odor Number", font=("Arial", 12, "bold")).grid(row=0, column=1, padx=5, pady=5)
-        tk.Label(self.stimuli_frame, text="Probability", font=("Arial", 12, "bold")).grid(row=0, column=2, padx=5, pady=5)
-        tk.Label(self.stimuli_frame, text="value", font=("Arial", 12, "bold")).grid(row=0, column=3, padx=5, pady=5)
-        tk.Label(self.stimuli_frame, text="index", font=("Arial", 12, "bold")).grid(row=0, column=4, padx=5, pady=5)
+        tk.Label(self.stimuli_frame, text=ColumnNames.LEVEL_NAME, font=("Arial", 12, "bold")).grid(row=0, column=0, padx=5, pady=5)
+        tk.Label(self.stimuli_frame, text=ColumnNames.ODOR_NUMBER, font=("Arial", 12, "bold")).grid(row=0, column=1, padx=5, pady=5)
+        tk.Label(self.stimuli_frame, text=ColumnNames.PROBABILITY, font=("Arial", 12, "bold")).grid(row=0, column=2, padx=5, pady=5)
+        tk.Label(self.stimuli_frame, text=ColumnNames.VALUE, font=("Arial", 12, "bold")).grid(row=0, column=3, padx=5, pady=5)
+        tk.Label(self.stimuli_frame, text=ColumnNames.INDEX, font=("Arial", 12, "bold")).grid(row=0, column=4, padx=5, pady=5)
             
     
     def load_levels(self):
@@ -179,7 +180,7 @@ class LevelDefinitionApp:
                 # Write to CSV
                 with open(file_path, mode='w', newline='') as file:
                     writer = csv.writer(file)
-                    writer.writerow(["Level Name","Odor Number", "Probability", "Value", "Index"])  # Writing headers
+                    writer.writerow(ColumnNames.get_csv_headers())  # Writing headers
                     writer.writerows(data_to_save)  # Writing data rows
                     print(data_to_save)
             
