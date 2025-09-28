@@ -11,7 +11,7 @@ import GUI_sections
 import live_window
 import os
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 from datetime import datetime
 import numpy as np
 import subprocess
@@ -267,10 +267,24 @@ if __name__ == "__main__":
         #messagebox.showinfo("Success", f"Folder ready:\n{full_path}")
         root.destroy()
 
+    def choose_existing_folder():
+        global created_folder_name
+        
+        selected_folder = filedialog.askdirectory(
+            title="Choose Existing Experiment Folder",
+            mustexist=True,
+            initialdir=os.path.join(os.getcwd(), "experiments")
+        )
+        if selected_folder:
+            # Get just the folder name (last part of the path)
+            folder_name = os.path.basename(selected_folder)
+            created_folder_name = folder_name
+            root.destroy()
+
     # Create the GUI window for experiment setup
     root = tk.Tk()
     root.title("Experiment Setup")
-    root.geometry("300x120")
+    root.geometry("350x180")
 
     tk.Label(root, text="Enter Experiment Name:").pack(pady=10)
 
@@ -278,7 +292,8 @@ if __name__ == "__main__":
     entry.insert(0, "exp")  # Set default text
     entry.pack()
 
-    tk.Button(root, text="Create Folder", command=create_experiment_folder).pack(pady=10)
+    tk.Button(root, text="Create Folder", command=create_experiment_folder).pack(pady=5)
+    tk.Button(root, text="Choose Existing Folder", command=choose_existing_folder).pack(pady=5)
 
     root.mainloop()
 
