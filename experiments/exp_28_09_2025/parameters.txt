@@ -362,3 +362,30 @@ ITI_time: None
 stimulus_length: 2
 
 ----------------------------------------
+
+--- 2025-11-23 15:25:48 ---
+
+Levels:
+ Level Name  Odor Number  Probability Value  Index
+habituation            1          100    go      1
+
+Mice:
+ID: 0007DECB4A, Level:habituation
+
+Parameters:
+lick_time: 1
+lick_time_bin_size: None
+start_trial_option: 1
+start_trial_time: None
+IR_no_RFID_option: Take the Last RFID
+lick_threshold: 5
+time_to_lick_after_stim: 2
+open_valve_duration: 0.017
+open_odor_duration: 0.5
+load_odor_duration: 1
+timeout_punishment: 5
+ITI: 1
+ITI_time: None
+stimulus_length: 2
+
+----------------------------------------

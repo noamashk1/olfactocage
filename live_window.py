@@ -113,7 +113,9 @@ class LiveWindow:
         if label_text == "last RFID:":
             self.last_rfid_value = value_label  # Store reference to the last RFID label
         elif label_text == "level:":
-            self.level_value = value_label  
+            self.level_value = value_label
+        elif label_text == "stimulus:":
+            self.stimulus_value = value_label
         elif label_text == "trial value:":
             self.trial_value = value_label  
         elif label_text == "score:":
