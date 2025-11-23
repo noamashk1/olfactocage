@@ -16,7 +16,7 @@ audio_lock = threading.Lock()
 valve_pin = 4#23
 IR_pin = 27#25
 lick_pin = 17#24
-exit_odor_valve_pin = 21
+exit_odor_valve_pin = 12
 h = lgpio.gpiochip_open(0)
 lgpio.gpio_claim_output(h, valve_pin, 0)
 lgpio.gpio_claim_input(h,IR_pin)

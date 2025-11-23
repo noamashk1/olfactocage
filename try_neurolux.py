@@ -11,8 +11,8 @@ try:
     lgpio.gpio_claim_output(chip, PIN)
 
     while True:
-        lgpio.gpio_write(chip, PIN, 1)  # HIGH
-        time.sleep(1)
+        lgpio.gpio_write(chip, PIN, 0)  # HIGH
+        time.sleep(3000)
         print("on")
         lgpio.gpio_write(chip, PIN, 0)  # LOW
         time.sleep(1)
