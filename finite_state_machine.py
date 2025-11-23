@@ -68,6 +68,7 @@ class IdleState(State):
             self.fsm.exp.live_w.update_level('')
             self.fsm.exp.live_w.update_score('')
             self.fsm.exp.live_w.update_trial_value('')
+            self.fsm.exp.live_w.update_stimulus('')
 
         log_memory_usage("Enter Idle")
 
@@ -179,8 +180,14 @@ class TrialState(State):
     def run_trial(self):
         self.fsm.current_trial.start_time = datetime.now().strftime('%H:%M:%S.%f')  # Get current time
         self.fsm.current_trial.calculate_stim()
+        # if self.fsm.exp.live_w.activate_window:
+        #    self.fsm.exp.live_w.update_trial_value(self.fsm.current_trial.current_value)
+        current_value = self.fsm.current_trial.current_value
+        current_stim = os.path.basename(self.fsm.current_trial.current_stim_number)
+        print(f"Trial value: {current_value}, Stimulus: {current_stim}")
         if self.fsm.exp.live_w.activate_window:
-           self.fsm.exp.live_w.update_trial_value(self.fsm.current_trial.current_value)
+           self.fsm.exp.live_w.update_trial_value(current_value)
+           self.fsm.exp.live_w.update_stimulus(current_stim)
 
         stim_thread = threading.Thread(target=self.odor_stim, args=(lambda: self.stop_threads,))
         input_thread = threading.Thread(target=self.receive_input, args=(lambda: self.stop_threads,))
@@ -261,13 +268,11 @@ class TrialState(State):
             current_lick_state = lgpio.gpio_read(h, lick_pin)
             # Only count lick on transition from LOW to HIGH (rising edge)
             if current_lick_state == 1 and previous_lick_state == 0:  # 1 == HIGH, 0 == LOW
-                if self.fsm.exp.live_w.activate_window:
-                    self.fsm.exp.live_w.toggle_indicator("lick", "on")
-                    time.sleep(0.08) #wait for the lick to be visible on the indicator
                 self.fsm.current_trial.add_lick_time()
                 counter += 1
-                
                 if self.fsm.exp.live_w.activate_window:
+                    self.fsm.exp.live_w.toggle_indicator("lick", "on")
+                    time.sleep(0.01) #wait for the lick to be visible on the indicator
                     self.fsm.exp.live_w.toggle_indicator("lick", "off")
                 print("lick detected")
 
@@ -277,7 +282,7 @@ class TrialState(State):
                     break
             # Update previous state for next iteration
             previous_lick_state = current_lick_state
-            time.sleep(0.08)
+            time.sleep(0.01)
 
         if not self.got_response:
             print('no response')
