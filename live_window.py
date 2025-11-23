@@ -201,5 +201,5 @@ class LiveWindow:
         self.stimulus_value.config(text=str(stimulus))
 
 # Example usage
-live_window = LiveWindow()
+#live_window = LiveWindow()
 
