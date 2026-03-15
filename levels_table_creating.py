@@ -16,22 +16,26 @@ class LevelDefinitionApp:
         self.frame = tk.Frame(self.master)
         self.frame.pack(padx=10, pady=10)
         
+        # Instruction line: clarify the two-step flow
+        instruction = "Step 1: Add levels (name + number of stimuli).\nStep 2: Build the stimuli table to assign files and parameters, then Save."
+        tk.Label(self.frame, text=instruction, font=("Arial", 9), wraplength=500, justify=tk.LEFT).grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 10))
+        
         # Initialize the save_button attribute
         self.save_button = None  # Initially set to None, to be defined later
         
         # Create header row for the first table
-        tk.Label(self.frame, text=ColumnNames.LEVEL_NAME, font=("Arial", 12, "bold")).grid(row=0, column=0, padx=5, pady=5)
-        tk.Label(self.frame, text=ColumnNames.NUMBER_OF_STIMULI, font=("Arial", 12, "bold")).grid(row=0, column=1, padx=5, pady=5)
+        tk.Label(self.frame, text=ColumnNames.LEVEL_NAME, font=("Arial", 12, "bold")).grid(row=1, column=0, padx=5, pady=5)
+        tk.Label(self.frame, text=ColumnNames.NUMBER_OF_STIMULI, font=("Arial", 12, "bold")).grid(row=1, column=1, padx=5, pady=5)
 
         # Current row index for the first table
-        self.current_row = 1
+        self.current_row = 2
 
-        # Button to add a new level
-        self.add_button = tk.Button(self.frame, text="Add Level", command=self.add_level)
+        # Button to add a new level row
+        self.add_button = tk.Button(self.frame, text="Add level row", command=self.add_level)
         self.add_button.grid(row=self.current_row, column=0, columnspan=2, pady=10)
 
-        # Load button to create the second table
-        self.load_button = tk.Button(self.frame, text="Load", command=self.load_levels)
+        # Button to build the stimuli table (second step)
+        self.load_button = tk.Button(self.frame, text="Build stimuli table", command=self.load_levels)
         self.load_button.grid(row=self.current_row + 1, column=0, columnspan=2, pady=10)
 
         self.level_entries = []  # Store level name and stimulus counts
@@ -146,16 +150,15 @@ class LevelDefinitionApp:
         all_filled = True  # Flag to check if all fields are filled
 
         # Loop through all level entries to pull their contents
-        for level_name, stimulus_combobox, probability_entry, value_combobox, index_entry in self.stimuli_table_content:
+        for level_name, stimulus_combobox, probability_entry, value_combobox, row_index in self.stimuli_table_content:
             
-            #level_name = level_name_row.get().strip()
             odor_number = stimulus_combobox.get().strip()
             probability = probability_entry.get().strip()
             value = value_combobox.get().strip()
-            index = index_entry.get().strip()
+            index = str(row_index)  # INDEX is auto-filled (read-only)
 
             # Check if each required field is filled
-            if not odor_number or not probability or not index or value == "Select":
+            if not odor_number or not probability or value == "Select":
                 all_filled = False
                 break
 
@@ -195,6 +198,9 @@ class LevelDefinitionApp:
         start_row = len(self.stimuli_frame.grid_slaves()) // 3  # Start from the next row based on the number of stimuli shown
 
         for i in range(number_of_stimuli):
+            # Global row index (1-based): same as number of rows so far + 1
+            row_index = len(self.stimuli_table_content) + 1
+
             # Add Level Name label
             tk.Label(self.stimuli_frame, text=level_name).grid(row=start_row + i + 1, column=0, padx=5, pady=2)
             gpio_keys = list(self.experiment.GPIO_dict.keys())  # נניח שיש לך self.experiment
@@ -212,11 +218,11 @@ class LevelDefinitionApp:
             value_combobox.grid(row=start_row + i + 1, column=3, padx=5, pady=2)
             value_combobox.set("Select")  # Set a default placeholder in the combobox
             
-            # Create the index entry field
-            index_entry = tk.Entry(self.stimuli_frame)
-            index_entry.grid(row=start_row + i + 1, column=4, padx=5, pady=2) 
+            # INDEX: read-only label with row number (1, 2, 3, ...)
+            index_label = tk.Label(self.stimuli_frame, text=str(row_index))
+            index_label.grid(row=start_row + i + 1, column=4, padx=5, pady=2)
             
-            self.stimuli_table_content.append((level_name, stimulus_combobox,probability_entry,value_combobox,index_entry))
+            self.stimuli_table_content.append((level_name, stimulus_combobox, probability_entry, value_combobox, row_index))
             
                 # Draw a line separator after the last row of stimuli for this level
         separator = tk.Frame(self.stimuli_frame, height=1, bg="gray")  # Create a frame for the line

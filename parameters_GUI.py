@@ -62,16 +62,6 @@ class ParametersApp:
         self.start_trial_bin_size_entry.pack_forget()  # Hide initially
         self.start_trial_bin_size_frame.pack(anchor=tk.W)
 
- ##################################################################
-        self.IR_no_RFID_frame = tk.Frame(root)
-        self.custom_input_label3 = tk.Label(self.IR_no_RFID_frame, text="IR detected- no RFID:", font=self.font_style)
-        self.custom_input_label3.pack(side=tk.LEFT)
-        self.option_var = tk.StringVar(value="Take the Last RFID")  # Default value
-        self.IR_no_RFID = ttk.OptionMenu(self.IR_no_RFID_frame, self.option_var, "Take the Last RFID", "Take the Last RFID", "dont start trial")
-        self.IR_no_RFID.pack(pady=2,side=tk.LEFT)
-        # Add IR_no_RFID_frame to the root window
-        self.IR_no_RFID_frame.pack(anchor=tk.W, padx=10, pady=10)
-
 ####################################################################
 
         # Entry field for custom bin size (initially hidden)
@@ -99,7 +89,7 @@ class ParametersApp:
         self.time_open_valve_label = tk.Label(self.time_open_valve_frame, text="open valve (reward) duration (sec):", font=self.font_style)
         self.time_open_valve_label.pack(side=tk.LEFT)
         self.time_open_valve_entry = tk.Entry(self.time_open_valve_frame, font=self.font_style, width=5)
-        self.time_open_valve_entry.insert(0,"0.017")
+        self.time_open_valve_entry.insert(0,"0.015")
         self.time_open_valve_entry.pack(side=tk.LEFT, padx=10)
         self.time_open_valve_frame.pack(anchor=tk.W, padx=10, pady=10)
 

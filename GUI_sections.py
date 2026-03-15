@@ -63,10 +63,10 @@ class TkinterApp:
         # Add widgets to the top left frame
         self.lvlBtnsFrame = tk.LabelFrame(self.left_frame_top)
         self.lvlBtnsFrame.grid(row=0, column=1, padx=10, pady=10)
-        self.btnLoadLvl = tk.Button(self.lvlBtnsFrame, text="Load Levels", command=self.load_table)
-        self.btnLoadLvl.grid(row=0, column=0, padx=10, pady=10)
         self.btnCreateLvl = tk.Button(self.lvlBtnsFrame, text="Create Levels", command=self.create_level_table)
-        self.btnCreateLvl.grid(row=1, column=0, padx=10, pady=10)
+        self.btnCreateLvl.grid(row=0, column=0, padx=10, pady=10)
+        self.btnLoadLvl = tk.Button(self.lvlBtnsFrame, text="Load Levels", command=self.load_table)
+        self.btnLoadLvl.grid(row=1, column=0, padx=10, pady=10)
         self.mice_table = mice_table_creating.MainApp(self.left_frame_middle, self)
         self.parameters_btns = parameters_GUI.ParametersApp(self.right_frame)
         self.ok_button = tk.Button(self.right_frame, text="OK", command=self.get_parameters)
@@ -232,16 +232,11 @@ class TkinterApp:
         levels_window = tk.Toplevel(self.root)
         level_definition_app = levels_table_creating.LevelDefinitionApp(levels_window, self.experiment)
         self.root.wait_window(levels_window)
-        if level_definition_app.save_path:  # Ensure save_path is defined
+        if level_definition_app.save_path:
             self.load_table(level_definition_app.save_path)
             self.update_level_list()
             self.set_levels_df()
             print("Loaded table with path:", level_definition_app.save_path)
-        else:
-            print("No save path defined.")
-        self.load_table(level_definition_app.save_path)
-        self.update_level_list()
-        self.set_levels_df()
         
 
     def update_level_list(self):
@@ -336,7 +331,6 @@ class TkinterApp:
                 "lick_time_bin_size": self.parameters_btns.lick_time_bin_size_entry.get() if self.parameters_btns.lick_time_display_option.get() == '3' else None,
                 "start_trial_option": self.parameters_btns.start_trial_display_option.get(),
                 "start_trial_time": self.parameters_btns.start_trial_bin_size_entry.get() if self.parameters_btns.start_trial_display_option.get() == '2' else None,
-                "IR_no_RFID_option": self.parameters_btns.option_var.get(),
                 "lick_threshold": self.parameters_btns.licks_entry.get(),
                 "time_to_lick_after_stim": self.parameters_btns.time_licks_entry.get(),
                 "open_valve_duration": self.parameters_btns.time_open_valve_entry.get(),
