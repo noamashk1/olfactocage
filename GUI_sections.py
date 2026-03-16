@@ -20,7 +20,7 @@ from column_constants import ColumnNames
 class TkinterApp:
     def __init__(self, root,exp, exp_name):
         self.root = root
-        self.root.title("Olfactocage")
+        self.root.title(f"Olfactocage  |  Experiment folder: {exp_name}")
         self.levels_list = []
         self.levels_df = None
         self.experiment = exp
