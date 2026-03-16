@@ -17,7 +17,7 @@ class LevelDefinitionApp:
         self.frame.pack(padx=10, pady=10)
         
         # Instruction line: clarify the two-step flow
-        instruction = "Step 1: Add levels (name + number of stimuli).\nStep 2: Build the stimuli table to assign files and parameters, then Save."
+        instruction = "Step 1: Add levels (name + number of stimuli).\nStep 2: Step 2: Build the stimuli table, set its parameters, then Save."
         tk.Label(self.frame, text=instruction, font=("Arial", 9), wraplength=500, justify=tk.LEFT).grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 10))
         
         # Initialize the save_button attribute
