@@ -18,9 +18,11 @@ IR_pin = 27#25
 lick_pin = 17#24
 exit_odor_valve_pin = 12
 h = lgpio.gpiochip_open(0)
+# Claim basic input/output pins once
+lgpio.gpio_claim_input(h, IR_pin)
+lgpio.gpio_claim_input(h, lick_pin)
 lgpio.gpio_claim_output(h, valve_pin, 0)
-lgpio.gpio_claim_input(h,IR_pin)
-lgpio.gpio_claim_input(h,lick_pin)
+lgpio.gpio_claim_output(h, exit_odor_valve_pin, 0)
 
 ports = glob.glob('/dev/ttyUSB*')
 if not ports:
@@ -368,7 +370,10 @@ class FiniteStateMachine:
     def __init__(self, experiment=None):
         self.exp = experiment
         self.current_trial = Trial(self)
-        self.state = IdleState(self)
+
+        # Prepare all odor GPIO outputs once, before the FSM starts running
+        self.init_odor_gpio_outputs()
+
         # Load white noise for punishment
         try:
             #with np.load('/home/educage/git_educage2/educage2/pythonProject1/stimuli/white_noise.npz', mmap_mode='r') as z:
@@ -377,6 +382,22 @@ class FiniteStateMachine:
                 self.noise_Fs = int(z['Fs'])
         except FileNotFoundError:
             print("Warning: white_noise.npz not found, punishment audio will not work")
+
+        # Start in Idle state after all init is done
+        self.state = IdleState(self)
+
+    def init_odor_gpio_outputs(self):
+        """
+        Claim all GPIO pins used for odor valves (stimulus lines)
+        once at startup, based on the experiment's GPIO mapping.
+        """
+        # Odor GPIOs defined by the experiment mapping
+        if hasattr(self.exp, "GPIO_dict") and isinstance(self.exp.GPIO_dict, dict):
+            for pin in self.exp.GPIO_dict.values():
+                try:
+                    lgpio.gpio_claim_output(h, int(pin), 0)
+                except Exception as e:
+                    print(f"[GPIO init] Failed to claim output for pin {pin}: {e}")
 
 
     def on_event(self, event):
