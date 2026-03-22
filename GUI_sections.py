@@ -1,6 +1,6 @@
 import tkinter as tk
 import tkinter.ttk as ttk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, simpledialog
 import pandas as pd
 import csv
 import mice_table_creating
@@ -76,7 +76,8 @@ class TkinterApp:
         self.btnDataAnalysis.grid(row=0, column=0, padx=10, pady=10)
         self.btnUpdateGPIO = tk.Button(self.left_frame_bottom, text="Update GPIO", command=self.experiment.create_GPIO_dict)
         self.btnUpdateGPIO.grid(row=0, column=1, padx=10, pady=10)
-
+        self.btnUpdateEmail = tk.Button(self.left_frame_bottom, text="Update User Mail", command=self.update_user_mail)
+        self.btnUpdateEmail.grid(row=0, column=2, padx=10, pady=10)
 
         # Create a Frame to hold the Treeview and Scrollbars
         self.tree_frame = tk.Frame(self.left_frame_top, width=600)
@@ -282,6 +283,24 @@ class TkinterApp:
         # Define fixed widths for the columns using constants
         for column_name, width in ColumnNames.COLUMN_WIDTHS.items():
             self.tree.column(column_name, width=width)
+
+    def update_user_mail(self):
+        try:
+            if self.experiment is None:
+                messagebox.showerror("Error", "No experiment loaded.")
+                return
+            current_val = getattr(self.experiment, "user_email", "") or ""
+            email = simpledialog.askstring(
+                "Update User Email",
+                "Enter your email:",
+                initialvalue=current_val,
+                parent=self.root,
+            )
+            if email:
+                self.experiment.user_email = email.strip()
+                messagebox.showinfo("Email Updated", f"User email set to: {self.experiment.user_email}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to update user email: {e}")
 
     def open_data_analysis_window(self):
         analysis_root = tk.Toplevel()

@@ -34,7 +34,7 @@ import shutil
 # This file manages the main experiment logic, including GUI setup, experiment folder creation, and experiment execution.
 # It uses tkinter for GUI, manages experiment parameters, and handles experiment data storage.
 class Experiment:
-    def __init__(self,exp_name, mice_dict: dict[str, Mouse] = None, levels_df = None):
+    def __init__(self, exp_name, mice_dict: dict[str, Mouse] = None, levels_df = None):
         """
         Initialize the Experiment object.
         - exp_name: Name of the experiment (used for folder and file naming)
@@ -52,6 +52,7 @@ class Experiment:
         self.txt_file_path = None  # Path to the experiment text file
         self.exp_folder_path =None
         self.remote_folder = "/mnt/labfolder/Noam/results"
+        self.user_email = "noam4596@gmail.com"  # notifications; change via GUI "Update User Mail"
         self.new_txt_file(self.txt_file_name)  # Create a new text file for results
         self.GPIO_dict = {
                 1: 5,

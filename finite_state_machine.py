@@ -12,6 +12,11 @@ import os
 import psutil
 import glob
 
+from General_functions import send_email
+
+# Max time to wait for IR to go LOW (mouse left) after trial; then email + skip logic
+IR_EXIT_WAIT_MAX_SEC = 5 * 60
+
 audio_lock = threading.Lock()
 valve_pin = 4#23
 IR_pin = 27#25
@@ -357,8 +362,16 @@ class TrialState(State):
             time.sleep(0.5)
             self.fsm.current_trial.write_trial_to_csv(self.fsm.exp.txt_file_path)
             if self.fsm.exp.exp_params['ITI_time'] is None:
-                while lgpio.gpio_read(h, IR_pin) == 1:# 1 == HIGH
-                    time.sleep(0.09)
+                if self.fsm.skip_ir_exit:
+                    print("[IR] Skipping IR exit wait (one shot after previous IR timeout).")
+                    self.fsm.skip_ir_exit = False
+                else:
+                    loop_start = time.time()
+                    while lgpio.gpio_read(h, IR_pin) == 1:  # 1 == HIGH — wait until mouse leaves
+                        if time.time() - loop_start >= IR_EXIT_WAIT_MAX_SEC:
+                            self.fsm.on_ir_exit_wait_timed_out()
+                            break
+                        time.sleep(0.09)
                 time.sleep(1)  # wait one sec after exit- before pass to the next trial
             else:
                 time.sleep(int(self.fsm.exp.exp_params['ITI_time']))
@@ -370,6 +383,8 @@ class FiniteStateMachine:
     def __init__(self, experiment=None):
         self.exp = experiment
         self.current_trial = Trial(self)
+        # After IR wait timeout: skip the IR-exit loop once on the next trial (ITI_time is None)
+        self.skip_ir_exit = False
 
         # Prepare all odor GPIO outputs once, before the FSM starts running
         self.init_odor_gpio_outputs()
@@ -399,6 +414,31 @@ class FiniteStateMachine:
                 except Exception as e:
                     print(f"[GPIO init] Failed to claim output for pin {pin}: {e}")
 
+    def on_ir_exit_wait_timed_out(self):
+        """
+        IR stayed HIGH past IR_EXIT_WAIT_MAX_SEC after trial (mouse "never left" / sensor fault).
+        Notify by email, log, and schedule one-shot skip of the IR exit wait on next trial.
+        """
+        exp = self.exp
+        body = (
+            f"IR sensor stayed HIGH for {IR_EXIT_WAIT_MAX_SEC // 60} minutes while waiting "
+            f"for the mouse to leave the port. There may be dirt or debris on the IR sensor and it might need cleaning.\n\n"
+            f"Experiment folder / name: {getattr(exp, 'txt_file_name', '?')}\n"
+            f"The FSM left the wait loop and will skip IR exit wait once on the next trial end."
+        )
+        try:
+            send_email(
+                to_email=getattr(exp, "user_email", "") or "",
+                subject="Olfactocage: IR exit wait timeout",
+                body=body,
+            )
+        except Exception as e:
+            print(f"[IR] Failed to send warning email: {e}")
+        print(
+            f"[IR] Exit wait exceeded {IR_EXIT_WAIT_MAX_SEC}s — continuing; "
+            "next trial will skip this IR loop once."
+        )
+        self.skip_ir_exit = True
 
     def on_event(self, event):
         self.state.on_event(event)
