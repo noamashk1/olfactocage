@@ -622,6 +622,8 @@ class MainApp:
         self.parameter_window.wait_window()  # This makes the window modal-like
         
     def read_from_serial(self):
+
+    #remove me
         try:
             # Setup Serial Connection (adjust COM4 and 9600 to your needs)
             ser = serial.Serial(port='/dev/ttyUSB0',baudrate=9600,timeout=0.01)#timeout=1  # Change '/dev/ttyS0' to the detected port
