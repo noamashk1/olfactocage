@@ -498,6 +498,7 @@ import General_functions
 import pandas as pd
 from mouse import Mouse
 import os
+import time
 # Main application
 class MainApp:
     def __init__(self, master, GUI):
@@ -629,6 +630,8 @@ class MainApp:
             ser = serial.Serial(port='/dev/ttyUSB0',baudrate=9600,timeout=0.01)#timeout=1  # Change '/dev/ttyS0' to the detected port
             while not self.stop_event.is_set():#True:
                 if ser.in_waiting > 0:
+                    # Brief pause to let the full RFID line arrive before reading
+                    time.sleep(0.02)
                     line = ser.readline().decode('utf-8').strip()
                     self.display_data(line)
         except serial.SerialException as e:

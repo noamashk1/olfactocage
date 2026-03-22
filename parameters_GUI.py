@@ -109,7 +109,7 @@ class ParametersApp:
         self.load_odor_duration_label = tk.Label(self.load_odor_duration_frame, text="load odor duration (sec):", font=self.font_style)
         self.load_odor_duration_label.pack(side=tk.LEFT)
         self.load_odor_duration_entry = tk.Entry(self.load_odor_duration_frame, font=self.font_style, width=5)
-        self.load_odor_duration_entry.insert(0,"1")
+        self.load_odor_duration_entry.insert(0,"0")
         self.load_odor_duration_entry.pack(side=tk.LEFT, padx=10)
         self.load_odor_duration_frame.pack(anchor=tk.W, padx=10, pady=10)
 
