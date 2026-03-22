@@ -1,0 +1,4 @@
+Level Name,Odor Number,Probability,Value,Index
+habituation,1,100,go,1
+discrimination,1,50,go,2
+discrimination,3,50,no-go,3

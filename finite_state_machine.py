@@ -221,7 +221,6 @@ class TrialState(State):
                 self.give_reward()
             elif self.fsm.current_trial.score == 'fa':
                 self.give_punishment()
-
         self.on_event('trial_over')
 
     

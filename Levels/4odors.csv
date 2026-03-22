@@ -1,0 +1,5 @@
+Level Name,Odor Number,Probability,Value,Index
+4odors,1,25,go,1
+4odors,2,25,go,2
+4odors,3,25,no-go,3
+4odors,4,25,catch,4

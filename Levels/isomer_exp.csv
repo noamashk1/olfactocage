@@ -1,0 +1,8 @@
+Level Name,Odor Number,Probability,Value,Index
+habituation,6,100,go,1
+basic_go\nogo,1,50,go,2
+basic_go\nogo,2,50,no-go,3
+isomer_go\nogo,3,50,go,4
+isomer_go\nogo,5,50,no-go,5
+nonisomer_go\nogo,3,50,go,6
+nonisomer_go\nogo,4,50,no-go,7

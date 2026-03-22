@@ -1,0 +1,5 @@
+Level Name,Odor Number,Probability,Value,Index
+isomer_catch_new,3,48,go,1
+isomer_catch_new,5,48,no-go,2
+isomer_catch_new,4,2,catch,3
+isomer_catch_new,6,2,catch,4
