@@ -8,32 +8,20 @@ from email.mime.multipart import MIMEMultipart
 
 
 def send_email(to_email, subject, body):
-    """
-    Send notification email. Set env OLFACTO_SMTP_FROM and OLFACTO_SMTP_APP_PASSWORD
-    (Gmail app password) or edit the defaults below for your lab account.
-    """
-    if not (to_email or "").strip():
-        print("send_email: no recipient (user_email empty), skipping")
-        return
-    email_from = os.environ.get("OLFACTO_SMTP_FROM", "educage.lab@gmail.com")
-    app_password = os.environ.get("OLFACTO_SMTP_APP_PASSWORD", "").replace(" ", "")
-    if not app_password:
-        print(
-            "send_email: OLFACTO_SMTP_APP_PASSWORD not set — cannot send mail. Message:\n",
-            subject,
-            "\n",
-            body[:200],
-        )
-        return
+    # Same SMTP setup as educage2 (General_functions.send_email)
+    EMAIL = "educage.lab@gmail.com"
+    APP_PASSWORD = "vptc kxsf gggs ybxa"
     msg = MIMEMultipart()
-    msg["From"] = email_from
-    msg["To"] = to_email.strip()
+    msg["From"] = EMAIL
+    msg["To"] = to_email
     msg["Subject"] = subject
+
     msg.attach(MIMEText(body, "plain"))
+
     try:
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.starttls()
-        server.login(email_from, app_password)
+        server.login(EMAIL, APP_PASSWORD)
         server.send_message(msg)
         server.quit()
         print(f"✅ Mail sent to {to_email}")
