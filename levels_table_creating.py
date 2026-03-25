@@ -7,6 +7,18 @@ import os
 from column_constants import ColumnNames
 
 
+def _raise_tk_window(win):
+    """Lift window to front; helps when running inside Thonny/IDE (dialogs behind IDE)."""
+    try:
+        win.lift()
+        win.attributes("-topmost", True)
+        win.update_idletasks()
+        win.attributes("-topmost", False)
+        win.focus_force()
+    except tk.TclError:
+        pass
+
+
 class LevelDefinitionApp:
     
     def __init__(self, master, experiment):
@@ -129,7 +141,11 @@ class LevelDefinitionApp:
                 number_of_stimuli = int(count_entry.get().strip())
                 
                 if number_of_stimuli < 1:
-                    messagebox.showwarning("Input Error", "Number of stimuli must be at least 1.")
+                    messagebox.showwarning(
+                        "Input Error",
+                        "Number of stimuli must be at least 1.",
+                        parent=self.master,
+                    )
                     return
                 
                 # Create rows for each stimulus
@@ -142,7 +158,11 @@ class LevelDefinitionApp:
                 self.save_button.config(state=tk.NORMAL)  # Enable button
 
             except ValueError:
-                messagebox.showwarning("Input Error", "Please enter a valid number for the stimuli.")
+                messagebox.showwarning(
+                    "Input Error",
+                    "Please enter a valid number for the stimuli.",
+                    parent=self.master,
+                )
             
     def save_stimuli_table(self):
         # Gather the data from the stimuli table
@@ -172,11 +192,13 @@ class LevelDefinitionApp:
             os.makedirs(levels_dir, exist_ok=True)  # Create it if it doesn't exist
 
             # Open the file dialog in the "Levels" folder
+            _raise_tk_window(self.master)
             file_path = filedialog.asksaveasfilename(
                 defaultextension=".csv",
                 filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
                 initialdir=levels_dir,  # Set default directory
-                title="Save Levels File"
+                title="Save Levels File",
+                parent=self.master,
             )
 
             if file_path:  # If valid path is provided
@@ -191,7 +213,11 @@ class LevelDefinitionApp:
                 self.save_path = file_path
                 self.master.destroy()
         else:
-            messagebox.showwarning("Input Error", "Please complete all the parameters.")
+            messagebox.showwarning(
+                "Input Error",
+                "Please complete all the parameters.",
+                parent=self.master,
+            )
                 
     def create_stimuli_rows(self, level_name, number_of_stimuli):
     # Add rows for each stimulus

@@ -38,3 +38,6 @@ dist/
 
 experiments/
 debug_log.txt
+
+# Local SMTP secrets (never commit)
+smtp_local.env
