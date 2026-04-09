@@ -5,6 +5,7 @@ import csv  # To handle CSV writing
 from tkinter import filedialog  # To open the file dialog for saving files
 import os
 from column_constants import ColumnNames
+import General_functions
 
 
 def _raise_tk_window(win):
@@ -76,6 +77,10 @@ class LevelDefinitionApp:
         # Update the positions of the Add and Load buttons
         self.add_button.grid(row=self.current_row, column=0, columnspan=2, pady=10)
         self.load_button.grid(row=self.current_row + 1, column=0, columnspan=2, pady=10)
+        # If the Save button already exists (after "Build stimuli table"),
+        # keep it in sync with the current_row so it doesn't overlap.
+        if self.save_button is not None:
+            self.save_button.grid(row=self.current_row + 2, column=0, columnspan=2, pady=10)
         
     def header_titles(self):
         # Create header for the stimuli table
@@ -163,6 +168,9 @@ class LevelDefinitionApp:
                     "Please enter a valid number for the stimuli.",
                     parent=self.master,
                 )
+
+        # Table is built -> recenter the main window (its size changes)
+        General_functions.center_the_window(self.master)
             
     def save_stimuli_table(self):
         # Gather the data from the stimuli table

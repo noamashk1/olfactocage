@@ -15,6 +15,7 @@ import os
 from datetime import datetime
 from data_analysis import DataAnalysis
 from column_constants import ColumnNames
+import General_functions
 
 
 class TkinterApp:
@@ -29,6 +30,8 @@ class TkinterApp:
         w = 1800
         h = 800
         self.root.geometry(f"{w}x{h}")  # Adjust the size as needed
+        # Always open main app centered on screen
+        General_functions.center_the_window(self.root, f"{w}x{h}")
 
         # Create LabelFrames for the layout
         self.left_frame_top = tk.LabelFrame(root, text="Levels list", font=("Helvetica", 12, "bold"), padx=10, pady=10)
@@ -118,6 +121,8 @@ class TkinterApp:
 
     def create_level_table(self):
         levels_window = tk.Toplevel(self.root)
+        # Center immediately after window is created (content will set final size)
+        General_functions.center_the_window(levels_window)
         level_definition_app = levels_table_creating.LevelDefinitionApp(levels_window, self.experiment)
         self.root.wait_window(levels_window)
         if level_definition_app.save_path:
@@ -305,6 +310,7 @@ class TkinterApp:
     def open_data_analysis_window(self):
         analysis_root = tk.Toplevel()
         DataAnalysis(analysis_root)
+        General_functions.center_the_window(analysis_root)
         def run():
             root = tk.Tk()
             # You may need to provide appropriate arguments for exp and exp_name

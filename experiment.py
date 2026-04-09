@@ -19,6 +19,7 @@ from datetime import datetime
 import numpy as np
 import subprocess
 import shutil
+import General_functions
 
 
 ###  use those commands on terminal to push changes to git
@@ -202,6 +203,7 @@ class Experiment:
         top = tk.Toplevel(self.root)
         top.title("Set GPIO Mapping")
         top.geometry("250x350")
+        General_functions.center_the_window(top, "250x350")
         table_frame = tk.Frame(top)
         table_frame.pack(padx=10, pady=10)
 
@@ -290,6 +292,7 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.title("Experiment Setup")
     root.geometry("350x180")
+    General_functions.center_the_window(root, "350x180")
 
     tk.Label(root, text="Enter Experiment Name:").pack(pady=10)
 
