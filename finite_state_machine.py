@@ -362,8 +362,7 @@ class TrialState(State):
             self.fsm.current_trial.write_trial_to_csv(self.fsm.exp.txt_file_path)
             if self.fsm.exp.exp_params['ITI_time'] is None:
                 if self.fsm.skip_ir_exit:
-                    print("[IR] Skipping IR exit wait (one shot after previous IR timeout).")
-                    self.fsm.skip_ir_exit = False
+                    print("[IR] Skipping IR exit wait (after IR exit timeout this session).")
                 else:
                     loop_start = time.time()
                     while lgpio.gpio_read(h, IR_pin) == 1:  # 1 == HIGH — wait until mouse leaves
@@ -382,7 +381,7 @@ class FiniteStateMachine:
     def __init__(self, experiment=None):
         self.exp = experiment
         self.current_trial = Trial(self)
-        # After IR wait timeout: skip the IR-exit loop once on the next trial (ITI_time is None)
+        # Set True after IR exit wait timeout; then skip IR-exit wait on all later trials (ITI_time is None)
         self.skip_ir_exit = False
 
         # Prepare all odor GPIO outputs once, before the FSM starts running
@@ -416,14 +415,14 @@ class FiniteStateMachine:
     def on_ir_exit_wait_timed_out(self):
         """
         IR stayed HIGH past IR_EXIT_WAIT_MAX_SEC after trial (mouse "never left" / sensor fault).
-        Notify by email, log, and schedule one-shot skip of the IR exit wait on next trial.
+        Notify by email, log, and skip IR exit wait on all subsequent trial ends this session.
         """
         exp = self.exp
         body = (
             f"IR sensor stayed HIGH for {IR_EXIT_WAIT_MAX_SEC // 60} minutes while waiting "
             f"for the mouse to leave the port. There may be dirt or debris on the IR sensor and it might need cleaning.\n\n"
             f"Experiment folder / name: {getattr(exp, 'txt_file_name', '?')}\n"
-            f"The FSM left the wait loop and will skip IR exit wait once on the next trial end."
+            f"The FSM left the wait loop and will skip the IR-exit wait on all following trial ends until the session restarts."
         )
         try:
             send_email(
@@ -435,7 +434,7 @@ class FiniteStateMachine:
             print(f"[IR] Failed to send warning email: {e}")
         print(
             f"[IR] Exit wait exceeded {IR_EXIT_WAIT_MAX_SEC}s — continuing; "
-            "next trial will skip this IR loop once."
+            "IR exit wait disabled for the rest of this session."
         )
         self.skip_ir_exit = True
 
