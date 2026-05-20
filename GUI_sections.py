@@ -70,6 +70,13 @@ class TkinterApp:
         self.btnCreateLvl.grid(row=0, column=0, padx=10, pady=10)
         self.btnLoadLvl = tk.Button(self.lvlBtnsFrame, text="Load Levels", command=self.load_table)
         self.btnLoadLvl.grid(row=1, column=0, padx=10, pady=10)
+        self.btnEditLvl = tk.Button(
+            self.lvlBtnsFrame,
+            text="Edit Levels",
+            command=self.edit_level,
+            state=tk.DISABLED,
+        )
+        self.btnEditLvl.grid(row=2, column=0, padx=10, pady=10)
         self.mice_table = mice_table_creating.MainApp(self.left_frame_middle, self)
         self.parameters_btns = parameters_GUI.ParametersApp(self.right_frame)
         self.ok_button = tk.Button(self.right_frame, text="OK", command=self.get_parameters)
@@ -118,6 +125,29 @@ class TkinterApp:
         self.left_frame_top.grid_columnconfigure(0, weight=1)  # Allow the Treeview
         self.left_frame_top.grid_columnconfigure(0, weight=1)  # Allow the Treeview to expand
         self.left_frame_top.grid_columnconfigure(1, weight=0)  # Button does not expand
+
+    def update_edit_level_button_state(self):
+        if self.tree.get_children():
+            self.btnEditLvl.config(state=tk.NORMAL)
+        else:
+            self.btnEditLvl.config(state=tk.DISABLED)
+
+    def edit_level(self):
+        if self.levels_df is None or self.levels_df.empty:
+            messagebox.showerror("Error", "No levels loaded to edit.")
+            return
+
+        levels_window = tk.Toplevel(self.root)
+        General_functions.center_the_window(levels_window)
+        level_definition_app = levels_table_creating.LevelDefinitionApp(
+            levels_window, self.experiment, initial_data=self.levels_df.copy()
+        )
+        self.root.wait_window(levels_window)
+        if level_definition_app.save_path:
+            self.load_table(level_definition_app.save_path)
+            self.update_level_list()
+            self.set_levels_df()
+            print("Loaded table with path:", level_definition_app.save_path)
 
     def create_level_table(self):
         levels_window = tk.Toplevel(self.root)
@@ -190,8 +220,10 @@ class TkinterApp:
             self.set_fixed_column_widths()
             self.clear_frame(self.left_frame_middle)                              ############## restart the mice if already chosen #####################
             self.mice_table = mice_table_creating.MainApp(self.left_frame_middle, self) ############## restart the mice if already chosen #####################
+            self.update_edit_level_button_state()
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load file: {e}")
+            self.update_edit_level_button_state()
             
     def clear_frame(self, frame):
         for widget in frame.winfo_children():

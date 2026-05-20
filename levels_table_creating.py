@@ -4,6 +4,7 @@ from tkinter import ttk  # Make sure to import ttk for the Combobox
 import csv  # To handle CSV writing
 from tkinter import filedialog  # To open the file dialog for saving files
 import os
+import pandas as pd
 from column_constants import ColumnNames
 import General_functions
 
@@ -22,9 +23,10 @@ def _raise_tk_window(win):
 
 class LevelDefinitionApp:
     
-    def __init__(self, master, experiment):
+    def __init__(self, master, experiment, initial_data=None):
         self.master = master
         self.experiment = experiment
+        self._rows_data_by_level = {}
         self.master.title("Experiment Level Definition")
         self.frame = tk.Frame(self.master)
         self.frame.pack(padx=10, pady=10)
@@ -60,6 +62,46 @@ class LevelDefinitionApp:
         self.scrollable_frame = None  # Scrollable frame
         self.save_path = None
 
+        if initial_data is not None and not initial_data.empty:
+            self._populate_from_initial_data(initial_data)
+
+    def _resolve_column(self, df, canonical_name):
+        if canonical_name in df.columns:
+            return canonical_name
+        lower = canonical_name.lower()
+        for col in df.columns:
+            if str(col).strip().lower() == lower:
+                return col
+        raise KeyError(f"Column '{canonical_name}' not found in levels data")
+
+    def _populate_from_initial_data(self, df):
+        level_col = self._resolve_column(df, ColumnNames.LEVEL_NAME)
+        odor_col = self._resolve_column(df, ColumnNames.ODOR_NUMBER)
+        prob_col = self._resolve_column(df, ColumnNames.PROBABILITY)
+        value_col = self._resolve_column(df, ColumnNames.VALUE)
+        index_col = self._resolve_column(df, ColumnNames.INDEX)
+
+        for level_name, group in df.groupby(level_col, sort=False):
+            level_name = str(level_name).strip()
+            self.add_level_with_values(level_name, len(group))
+            self._rows_data_by_level[level_name] = [
+                {
+                    ColumnNames.ODOR_NUMBER: row[odor_col],
+                    ColumnNames.PROBABILITY: row[prob_col],
+                    ColumnNames.VALUE: row[value_col],
+                    ColumnNames.INDEX: row[index_col],
+                }
+                for _, row in group.iterrows()
+            ]
+
+        self.load_levels()
+
+    def add_level_with_values(self, level_name, stimuli_count):
+        self.add_level()
+        name_entry, count_entry = self.level_entries[-1]
+        name_entry.insert(0, level_name)
+        count_entry.insert(0, str(stimuli_count))
+
     def add_level(self):
         level_name_entry = tk.Entry(self.frame)
         level_name_entry.grid(row=self.current_row, column=0, padx=5, pady=5)
@@ -91,16 +133,27 @@ class LevelDefinitionApp:
         tk.Label(self.stimuli_frame, text=ColumnNames.INDEX, font=("Arial", 12, "bold")).grid(row=0, column=4, padx=5, pady=5)
             
     
+    def _capture_current_stimuli_data(self):
+        """Keep filled stimuli values when rebuilding the table (e.g. after adding a level)."""
+        self._rows_data_by_level = {}
+        for level_name, stimulus_combobox, probability_entry, value_combobox, row_index in self.stimuli_table_content:
+            level_name = str(level_name).strip()
+            odor = stimulus_combobox.get().strip()
+            probability = probability_entry.get().strip()
+            value = value_combobox.get().strip()
+            self._rows_data_by_level.setdefault(level_name, []).append(
+                {
+                    ColumnNames.ODOR_NUMBER: odor if odor and odor != "Select" else None,
+                    ColumnNames.PROBABILITY: probability if probability else None,
+                    ColumnNames.VALUE: value if value and value != "Select" else None,
+                    ColumnNames.INDEX: row_index,
+                }
+            )
+
     def load_levels(self):
-        # if self.stimuli_frame is not None:
-        #     for widget in self.stimuli_frame.winfo_children():
-        #         widget.destroy()
-        #     self.header_titles()
-        # else:
-        #     # Create stimuli frame if it doesn't exist
-        #     self.stimuli_frame = tk.Frame(self.master)
-        #     self.stimuli_frame.pack(side="left", padx=10, pady=10)
-        #     self.header_titles()
+        if self.stimuli_table_content:
+            self._capture_current_stimuli_data()
+
         # Clear previous stimuli frame if it exists
         if self.stimuli_container is not None:
             self.stimuli_container.destroy()
@@ -153,8 +206,8 @@ class LevelDefinitionApp:
                     )
                     return
                 
-                # Create rows for each stimulus
-                self.create_stimuli_rows(level_name, number_of_stimuli)
+                rows_data = self._rows_data_by_level.get(level_name)
+                self.create_stimuli_rows(level_name, number_of_stimuli, rows_data)
 
                 # Enable the Save button if it's not already created
                 if self.save_button is None:
@@ -227,36 +280,56 @@ class LevelDefinitionApp:
                 parent=self.master,
             )
                 
-    def create_stimuli_rows(self, level_name, number_of_stimuli):
-    # Add rows for each stimulus
-        start_row = len(self.stimuli_frame.grid_slaves()) // 3  # Start from the next row based on the number of stimuli shown
+    def create_stimuli_rows(self, level_name, number_of_stimuli, rows_data=None):
+        start_row = len(self.stimuli_frame.grid_slaves()) // 3
 
         for i in range(number_of_stimuli):
-            # Global row index (1-based): same as number of rows so far + 1
             row_index = len(self.stimuli_table_content) + 1
+            row_data = rows_data[i] if rows_data and i < len(rows_data) else None
 
-            # Add Level Name label
+            if row_data and row_data.get(ColumnNames.INDEX) is not None:
+                row_index = row_data[ColumnNames.INDEX]
+
             tk.Label(self.stimuli_frame, text=level_name).grid(row=start_row + i + 1, column=0, padx=5, pady=2)
-            gpio_keys = list(self.experiment.GPIO_dict.keys())  # נניח שיש לך self.experiment
-            stimulus_combobox = ttk.Combobox(self.stimuli_frame, values=gpio_keys, state="readonly")
+            gpio_keys = list(self.experiment.GPIO_dict.keys())
+            odor_value = ""
+            if row_data and row_data.get(ColumnNames.ODOR_NUMBER) is not None:
+                odor_value = str(row_data[ColumnNames.ODOR_NUMBER]).strip()
+            combobox_values = list(gpio_keys)
+            if odor_value and odor_value not in combobox_values:
+                combobox_values = [odor_value] + combobox_values
+            stimulus_combobox = ttk.Combobox(
+                self.stimuli_frame, values=combobox_values, state="readonly"
+            )
             stimulus_combobox.grid(row=start_row + i + 1, column=1, padx=5, pady=2)
-            stimulus_combobox.set("Select")  # Placeholder
+            if odor_value:
+                stimulus_combobox.set(odor_value)
+            else:
+                stimulus_combobox.set("Select")
 
-
-            # Create the Probability entry field
             probability_entry = tk.Entry(self.stimuli_frame)
             probability_entry.grid(row=start_row + i + 1, column=2, padx=5, pady=2)
+            if row_data and row_data.get(ColumnNames.PROBABILITY) is not None:
+                probability_entry.insert(0, str(row_data[ColumnNames.PROBABILITY]))
 
-            # Create a Combobox for the value column
-            value_combobox = ttk.Combobox(self.stimuli_frame, values=["go", "no-go", "catch"])
+            value_options = ["go", "no-go", "catch"]
+            value_combobox = ttk.Combobox(self.stimuli_frame, values=value_options)
             value_combobox.grid(row=start_row + i + 1, column=3, padx=5, pady=2)
-            value_combobox.set("Select")  # Set a default placeholder in the combobox
-            
-            # INDEX: read-only label with row number (1, 2, 3, ...)
+            if row_data and row_data.get(ColumnNames.VALUE) is not None:
+                value = str(row_data[ColumnNames.VALUE]).strip()
+                if value and value not in value_options:
+                    value_options = [value] + value_options
+                    value_combobox["values"] = value_options
+                value_combobox.set(value)
+            else:
+                value_combobox.set("Select")
+
             index_label = tk.Label(self.stimuli_frame, text=str(row_index))
             index_label.grid(row=start_row + i + 1, column=4, padx=5, pady=2)
-            
-            self.stimuli_table_content.append((level_name, stimulus_combobox, probability_entry, value_combobox, row_index))
+
+            self.stimuli_table_content.append(
+                (level_name, stimulus_combobox, probability_entry, value_combobox, row_index)
+            )
             
                 # Draw a line separator after the last row of stimuli for this level
         separator = tk.Frame(self.stimuli_frame, height=1, bg="gray")  # Create a frame for the line
