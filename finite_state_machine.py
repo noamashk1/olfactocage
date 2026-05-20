@@ -86,7 +86,9 @@ class IdleState(State):
         last_log_time = time.time()
 
         while True:
-            
+            if self.fsm.skip_ir_exit and lgpio.gpio_read(h, IR_pin) == 0:
+                self.fsm.on_ir_exit_recovered()
+
             if time.time() - last_log_time > 60:
                 minutes_passed += 1
                 last_log_time = time.time()
@@ -381,7 +383,7 @@ class FiniteStateMachine:
     def __init__(self, experiment=None):
         self.exp = experiment
         self.current_trial = Trial(self)
-        # Set True after IR exit wait timeout; then skip IR-exit wait on all later trials (ITI_time is None)
+        # True after IR exit wait timeout; cleared when IR reads LOW again in Idle (ITI_time is None)
         self.skip_ir_exit = False
 
         # Prepare all odor GPIO outputs once, before the FSM starts running
@@ -422,7 +424,8 @@ class FiniteStateMachine:
             f"IR sensor stayed HIGH for {IR_EXIT_WAIT_MAX_SEC // 60} minutes while waiting "
             f"for the mouse to leave the port. There may be dirt or debris on the IR sensor and it might need cleaning.\n\n"
             f"Experiment folder / name: {getattr(exp, 'txt_file_name', '?')}\n"
-            f"The FSM left the wait loop and will skip the IR-exit wait on all following trial ends until the session restarts."
+            f"The FSM left the wait loop and will skip the IR-exit wait until IR reads LOW again in Idle.\n"
+            f"ITI exit-and-enter wait will resume automatically once the sensor is OK."
         )
         try:
             send_email(
@@ -434,9 +437,55 @@ class FiniteStateMachine:
             print(f"[IR] Failed to send warning email: {e}")
         print(
             f"[IR] Exit wait exceeded {IR_EXIT_WAIT_MAX_SEC}s — continuing; "
-            "IR exit wait disabled for the rest of this session."
+            "IR exit wait disabled until IR reads LOW in Idle."
         )
         self.skip_ir_exit = True
+        self._log_ir_event_to_parameters(
+            event_type="IR problem (exit wait timeout)",
+            details=(
+                f"IR stayed HIGH for {IR_EXIT_WAIT_MAX_SEC // 60} minutes after trial end "
+                f"while waiting for the mouse to leave the port. "
+                f"Possible sensor fault or debris. "
+                f"ITI exit-and-enter wait is disabled until IR reads LOW again in Idle."
+            ),
+        )
+
+    def on_ir_exit_recovered(self):
+        """IR reads LOW again while skip_ir_exit was active — restore normal ITI exit wait."""
+        self.skip_ir_exit = False
+        print(
+            "[IR] Sensor reads LOW in Idle — IR exit wait restored. "
+            "ITI exit-and-enter will wait for the mouse to leave again after each trial."
+        )
+        self._log_ir_event_to_parameters(
+            event_type="IR recovered",
+            details="IR reads LOW in Idle. ITI exit-and-enter wait restored.",
+        )
+
+    def _log_ir_event_to_parameters(self, event_type: str, details: str):
+        """Append IR status notes to parameters.txt (same folder as experiment txt file)."""
+        exp = self.exp
+        if exp is None or not getattr(exp, "txt_file_path", None):
+            print("[IR] Cannot log to parameters.txt: experiment path not set.")
+            return
+        folder_path = os.path.dirname(exp.txt_file_path)
+        parameters_file_path = os.path.join(folder_path, "parameters.txt")
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        try:
+            os.makedirs(folder_path, exist_ok=True)
+            with open(parameters_file_path, "a", encoding="utf-8") as file:
+                file.write(f"\n--- IR event {timestamp} ---\n")
+                file.write(f"Event: {event_type}\n")
+                file.write(f"Details: {details}\n")
+                file.write(f"Experiment: {getattr(exp, 'txt_file_name', '?')}\n")
+                file.write(f"skip_ir_exit: {self.skip_ir_exit}\n")
+                if exp.exp_params is not None:
+                    iti_time = exp.exp_params.get("ITI_time")
+                    file.write(f"ITI_time: {iti_time}\n")
+                file.write("-" * 40 + "\n")
+            print(f"[IR] Logged to parameters.txt: {event_type}")
+        except Exception as e:
+            print(f"[IR] Failed to write to parameters.txt: {e}")
 
     def on_event(self, event):
         self.state.on_event(event)
