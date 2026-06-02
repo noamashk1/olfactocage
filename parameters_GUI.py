@@ -69,7 +69,7 @@ class ParametersApp:
         self.num_licks_label = tk.Label(self.num_licks_frame, text="num of licks as response:", font=self.font_style)
         self.num_licks_label.pack(side=tk.LEFT)
         self.licks_entry = tk.Entry(self.num_licks_frame, font=self.font_style, width=5)
-        self.licks_entry.insert(0,"5")
+        self.licks_entry.insert(0,"2")
         self.licks_entry.pack(side=tk.LEFT, padx=10)
         self.num_licks_frame.pack(anchor=tk.W, padx=10, pady=10)
 
