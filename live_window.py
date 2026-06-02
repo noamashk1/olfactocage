@@ -159,6 +159,23 @@ class LiveWindow:
             highlightthickness=0,
             bg=(self._activate_btn_default_bg if self._activate_btn_default_bg else "#d9d9d9")  # reset to original or a neutral default
         )
+            self.reset_live_window_indicators()
+
+    def reset_live_window_indicators(self):
+        # Reset state and signal indicators to gray.
+        self.idle_bulb.itemconfig(self.indicator_circle, fill="gray")
+        self.in_port_bulb.itemconfig(self.indicator_circle, fill="gray")
+        self.trial_bulb.itemconfig(self.indicator_circle, fill="gray")
+        self.lick_bulb.itemconfig(self.indicator_circle, fill="gray")
+        self.ir_bulb.itemconfig(self.indicator_circle, fill="gray")
+        self.stimulus_bulb.itemconfig(self.indicator_circle, fill="gray")
+
+        # Clear status fields.
+        self.last_rfid_value.config(text="")
+        self.level_value.config(text="")
+        self.trial_value.config(text="")
+        self.stimulus_value.config(text="")
+        self.score_value.config(text="")
 
     def deactivate_states_indicators(self, state_name):
         self.idle_bulb.itemconfig(self.indicator_circle, fill="gray")  
