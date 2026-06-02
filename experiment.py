@@ -53,7 +53,13 @@ class Experiment:
         self.txt_file_path = None  # Path to the experiment text file
         self.exp_folder_path =None
         self.remote_folder = "/mnt/labfolder/Noam/results"
-        self.user_email = "noam4596@gmail.com"  # notifications; change via GUI "Update User Mail"
+        # Notification recipients (editable via GUI "Update User Mail")
+        self.user_emails = [
+            "noam4596@gmail.com",
+            "Hadar.sagi@mail.huji.ac.il",
+        ]
+        # Backwards compatibility: some code still expects a single string.
+        self.user_email = self.user_emails[0]
         self.new_txt_file(self.txt_file_name)  # Create a new text file for results
         self.GPIO_dict = {
                 1: 5,

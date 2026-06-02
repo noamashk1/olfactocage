@@ -326,16 +326,33 @@ class TkinterApp:
             if self.experiment is None:
                 messagebox.showerror("Error", "No experiment loaded.")
                 return
-            current_val = getattr(self.experiment, "user_email", "") or ""
+            current = getattr(self.experiment, "user_emails", None)
+            if not current:
+                current = []
+                existing_single = (getattr(self.experiment, "user_email", "") or "").strip()
+                if existing_single:
+                    current = [existing_single]
+            current_display = ", ".join(current) if current else "(none)"
+
             email = simpledialog.askstring(
-                "Update User Email",
-                "Enter your email:",
-                initialvalue=current_val,
+                "Add Notification Email",
+                f"Current recipients:\n{current_display}\n\nEnter an email to add:",
                 parent=self.root,
             )
-            if email:
-                self.experiment.user_email = email.strip()
-                messagebox.showinfo("Email Updated", f"User email set to: {self.experiment.user_email}")
+            if not email:
+                return
+            email = email.strip()
+            if "@" not in email:
+                messagebox.showerror("Error", f"Invalid email: {email}")
+                return
+
+            if email not in current:
+                current.append(email)
+
+            # Persist
+            self.experiment.user_emails = current
+            self.experiment.user_email = current[0] if current else ""
+            messagebox.showinfo("Email Added", f"Recipients:\n{', '.join(self.experiment.user_emails)}")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to update user email: {e}")
 

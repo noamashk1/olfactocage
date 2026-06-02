@@ -295,39 +295,6 @@ class TrialState(State):
         if not self.got_response:
             print('no response')
         print('num of licks: ' + str(counter))
-            
-    # def receive_input(self, stop):
-    #     if self.fsm.exp.exp_params["lick_time_bin_size"] is not None:
-    #         time.sleep(int(self.fsm.exp.exp_params["lick_time_bin_size"]))
-    #     elif self.fsm.exp.exp_params["lick_time"] == "1":
-    #         pass
-    #     elif self.fsm.exp.exp_params["lick_time"] == "2":
-    #         time.sleep(int(self.fsm.exp.exp_params["stimulus_length"]))
-
-    #     counter = 0
-    #     self.got_response = False
-    #     print('waiting for licks...')
-    #     while not stop():
-    #         if lgpio.gpio_read(h, lick_pin) == 1: # 1==HIGH
-    #             if self.fsm.exp.live_w.activate_window:
-    #                 self.fsm.exp.live_w.toggle_indicator("lick", "on")
-    #             self.fsm.current_trial.add_lick_time()
-    #             counter += 1
-    #             time.sleep(0.08)
-    #             if self.fsm.exp.live_w.activate_window:
-    #                 self.fsm.exp.live_w.toggle_indicator("lick", "off")
-    #             print("lick detected")
-
-    #             if counter >= int(self.fsm.exp.exp_params["lick_threshold"]) and not self.got_response:
-    #                 self.got_response = True
-    #                 print('threshold reached')
-    #                 break
-
-    #         time.sleep(0.08)
-
-    #     if not self.got_response:
-    #         print('no response')
-    #     print('num of licks:', counter)
 
     
     def give_reward(self):
@@ -428,11 +395,18 @@ class FiniteStateMachine:
             f"ITI exit-and-enter wait will resume automatically once the sensor is OK."
         )
         try:
-            send_email(
-                to_email=getattr(exp, "user_email", "") or "",
-                subject="Olfactocage: IR exit wait timeout",
-                body=body,
-            )
+            recipients = getattr(exp, "user_emails", None)
+            if not recipients:
+                recipients = [getattr(exp, "user_email", "") or ""]
+            for to_email in recipients:
+                to_email = (to_email or "").strip()
+                if not to_email:
+                    continue
+                send_email(
+                    to_email=to_email,
+                    subject="Olfactocage: IR exit wait timeout",
+                    body=body,
+                )
         except Exception as e:
             print(f"[IR] Failed to send warning email: {e}")
         print(
