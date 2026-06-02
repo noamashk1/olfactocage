@@ -16,6 +16,7 @@ from General_functions import send_email
 
 # Max time to wait for IR to go LOW (mouse left) after trial; then email + skip logic
 IR_EXIT_WAIT_MAX_SEC = 5 * 60
+IR_PROBLEM_REMINDER_SEC = 3 * 60 * 60
 
 audio_lock = threading.Lock()
 valve_pin = 4#23
@@ -88,6 +89,8 @@ class IdleState(State):
         while True:
             if self.fsm.skip_ir_exit and lgpio.gpio_read(h, IR_pin) == 0:
                 self.fsm.on_ir_exit_recovered()
+            elif self.fsm.skip_ir_exit:
+                self.fsm.maybe_send_ir_problem_reminder()
 
             if time.time() - last_log_time > 60:
                 minutes_passed += 1
@@ -331,7 +334,8 @@ class TrialState(State):
             self.fsm.current_trial.write_trial_to_csv(self.fsm.exp.txt_file_path)
             if self.fsm.exp.exp_params['ITI_time'] is None:
                 if self.fsm.skip_ir_exit:
-                    print("[IR] Skipping IR exit wait (after IR exit timeout this session).")
+                    time.sleep(1)
+                    print("[IR] Slept 1 second. Skipping IR exit wait (after IR exit timeout this session).")
                 else:
                     loop_start = time.time()
                     while lgpio.gpio_read(h, IR_pin) == 1:  # 1 == HIGH — wait until mouse leaves
@@ -352,6 +356,7 @@ class FiniteStateMachine:
         self.current_trial = Trial(self)
         # True after IR exit wait timeout; cleared when IR reads LOW again in Idle (ITI_time is None)
         self.skip_ir_exit = False
+        self.last_ir_problem_email_ts = None
 
         # Prepare all odor GPIO outputs once, before the FSM starts running
         self.init_odor_gpio_outputs()
@@ -407,6 +412,7 @@ class FiniteStateMachine:
                     subject="Olfactocage: IR exit wait timeout",
                     body=body,
                 )
+            self.last_ir_problem_email_ts = time.time()
         except Exception as e:
             print(f"[IR] Failed to send warning email: {e}")
         print(
@@ -424,9 +430,42 @@ class FiniteStateMachine:
             ),
         )
 
+    def maybe_send_ir_problem_reminder(self):
+        """While IR issue persists, resend warning email at a fixed interval."""
+        now = time.time()
+        if self.last_ir_problem_email_ts is not None and (now - self.last_ir_problem_email_ts) < IR_PROBLEM_REMINDER_SEC:
+            return
+
+        exp = self.exp
+        body = (
+            f"Reminder: IR sensor issue is still ongoing.\n\n"
+            f"IR sensor stayed HIGH for {IR_EXIT_WAIT_MAX_SEC // 60} minutes while waiting "
+            f"for the mouse to leave the port. There may be dirt or debris on the IR sensor and it might need cleaning.\n\n"
+            f"Experiment folder / name: {getattr(exp, 'txt_file_name', '?')}\n"
+            f"The FSM is still skipping IR-exit wait until IR reads LOW again in Idle."
+        )
+        try:
+            recipients = getattr(exp, "user_emails", None)
+            if not recipients:
+                recipients = [getattr(exp, "user_email", "") or ""]
+            for to_email in recipients:
+                to_email = (to_email or "").strip()
+                if not to_email:
+                    continue
+                send_email(
+                    to_email=to_email,
+                    subject="Olfactocage: IR exit wait timeout",
+                    body=body,
+                )
+            self.last_ir_problem_email_ts = now
+            print("[IR] Reminder email sent (issue still ongoing).")
+        except Exception as e:
+            print(f"[IR] Failed to send reminder email: {e}")
+
     def on_ir_exit_recovered(self):
         """IR reads LOW again while skip_ir_exit was active — restore normal ITI exit wait."""
         self.skip_ir_exit = False
+        self.last_ir_problem_email_ts = None
         print(
             "[IR] Sensor reads LOW in Idle — IR exit wait restored. "
             "ITI exit-and-enter will wait for the mouse to leave again after each trial."
