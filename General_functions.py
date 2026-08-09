@@ -248,3 +248,5 @@ def scary_with_clicks(duration=3.0, sample_rate=44100, click_rate=10, save_path:
 
 #scary_with_clicks(duration=2, click_rate=12, save_path = '/home/educage/Projects/olfactocage/stimuli/scary_noise.npz') 
 send_email("noam4596@gmail.com", "Test", "This is a test email from the olfactocage.")
+
+
