@@ -10,7 +10,7 @@ from email.mime.multipart import MIMEMultipart
 def send_email(to_email, subject, body):
     # Same SMTP setup as educage2 (General_functions.send_email)
     EMAIL = "educage.lab@gmail.com"
-    APP_PASSWORD = "vptc kxsf gggs ybxa"
+    APP_PASSWORD = "welo frnh ptlt ykci"
     msg = MIMEMultipart()
     msg["From"] = EMAIL
     msg["To"] = to_email
@@ -247,3 +247,4 @@ def scary_with_clicks(duration=3.0, sample_rate=44100, click_rate=10, save_path:
             print(f"[save npz] failed to save '{save_path}': {e}")
 
 #scary_with_clicks(duration=2, click_rate=12, save_path = '/home/educage/Projects/olfactocage/stimuli/scary_noise.npz') 
+send_email("noam4596@gmail.com","test-subject","test-body")
