@@ -1,0 +1,7 @@
+Level Name,Odor Number,Probability,Value,Index
+test_catch50,1,24,go,1
+test_catch50,3,23,go,2
+test_catch50,2,24,no-go,3
+test_catch50,4,23,no-go,4
+test_catch50,7,3,catch,5
+test_catch50,8,3,catch,6

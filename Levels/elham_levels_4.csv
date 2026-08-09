@@ -1,0 +1,3 @@
+Level Name,Odor Number,Probability,Value,Index
+contingency_change,5,50,no-go,1
+contingency_change,6,50,go,2

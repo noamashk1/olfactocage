@@ -1,0 +1,9 @@
+Level Name,Odor Number,Probability,Value,Index
+Multi,1,0,go,1
+Multi,3,23,go,2
+Multi,5,23,go,3
+Multi,2,0,no-go,4
+Multi,4,23,no-go,5
+Multi,6,23,no-go,6
+Multi,7,4,catch,7
+Multi,8,4,catch,8

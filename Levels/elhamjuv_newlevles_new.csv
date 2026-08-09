@@ -1,0 +1,15 @@
+Level Name,Odor Number,Probability,Value,Index
+training,1,50,go,1
+training,2,50,no-go,2
+test,1,10,go,3
+test,3,10,go,4
+test,5,10,go,5
+test,1,10,catch,6
+test,4,10,no-go,7
+test,6,10,no-go,8
+test_catch,1,24,go,9
+test_catch,3,23,go,10
+test_catch,2,24,no-go,11
+test_catch,4,23,no-go,12
+test_catch,7,3,catch,13
+test_catch,8,3,catch,14

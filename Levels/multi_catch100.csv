@@ -1,0 +1,7 @@
+Level Name,Odor Number,Probability,Value,Index
+Multi_catch100,3,23,go,1
+Multi_catch100,5,23,go,2
+Multi_catch100,4,23,no-go,3
+Multi_catch100,6,23,no-go,4
+Multi_catch100,7,4,catch,5
+Multi_catch100,8,4,catch,6

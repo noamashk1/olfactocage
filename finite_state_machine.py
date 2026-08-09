@@ -15,7 +15,7 @@ import glob
 from General_functions import send_email
 
 # Max time to wait for IR to go LOW (mouse left) after trial; then email + skip logic
-IR_EXIT_WAIT_MAX_SEC = 5 * 60
+IR_EXIT_WAIT_MAX_SEC = 1 * 60
 IR_PROBLEM_REMINDER_SEC = 3 * 60 * 60
 
 audio_lock = threading.Lock()

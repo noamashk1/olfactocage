@@ -1,0 +1,8 @@
+Level Name,Odor Number,Probability,Value,Index
+habituation,6,100,go,1
+training,4,50,go,2
+training,3,50,no-go,3
+test,1,50,go,4
+test,2,50,no-go,5
+test_flip,2,50,go,6
+test_flip,1,50,no-go,7
