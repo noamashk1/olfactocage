@@ -110,6 +110,14 @@ class IdleState(State):
                  
                 if minutes_passed % 5 == 0:
                     log_memory_usage("IdleState periodic check")
+            
+            #### HABITUATION BYPASS START (remove tomorrow) ####################################
+            if lgpio.gpio_read(h, IR_pin) == 1 and not self.fsm.exp.live_w.pause:
+                first_mouse = next(iter(self.fsm.exp.mice_dict.values()))
+                self.fsm.current_trial.update_current_mouse(first_mouse)
+                self.on_event('in_port')
+                break
+            #### HABITUATION BYPASS END #########################################################
 
             if ser.in_waiting > 0 and not self.fsm.exp.live_w.pause:
                 try:
