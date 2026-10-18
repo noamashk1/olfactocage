@@ -110,14 +110,6 @@ class IdleState(State):
                  
                 if minutes_passed % 5 == 0:
                     log_memory_usage("IdleState periodic check")
-            
-            #### HABITUATION BYPASS START (remove tomorrow) ####################################
-#             if lgpio.gpio_read(h, IR_pin) == 1 and not self.fsm.exp.live_w.pause:
-#                 first_mouse = next(iter(self.fsm.exp.mice_dict.values()))
-#                 self.fsm.current_trial.update_current_mouse(first_mouse)
-#                 self.on_event('in_port')
-#                 break
-            #### HABITUATION BYPASS END #########################################################
 
             if ser.in_waiting > 0 and not self.fsm.exp.live_w.pause:
                 try:
@@ -230,15 +222,27 @@ class TrialState(State):
             if self.fsm.exp.live_w.activate_window:
                 self.fsm.exp.live_w.update_score(self.fsm.current_trial.score)
 
-            if self.fsm.current_trial.score == 'hit':
-                self.give_reward()
-            elif self.fsm.current_trial.score == 'fa':
-                self.give_punishment()
-            #################### remove after first habituation #######################
-#             else:
-#                 self.give_reward('miss- but rewarded')
-#                 print()
-            #######################################################
+            # if self.fsm.current_trial.score == 'hit':
+            #     self.give_reward()
+            # elif self.fsm.current_trial.score == 'fa':
+            #     self.give_punishment()
+
+            #### PROBABILISTIC OUTCOME START (delete this block laterrrrrrr) ################
+            outcome_given = ''
+            if self.fsm.current_trial.current_value in ('go', 'no-go'):
+                outcome_given = 'no'
+                if np.random.random() < 0.8:
+                    if self.fsm.current_trial.score == 'hit':
+                        self.give_reward()
+                        outcome_given = 'yes'
+                    elif self.fsm.current_trial.score == 'fa':
+                        self.give_punishment()
+                        outcome_given = 'yes'
+                else:
+                    print("outcome withheld (probability 80%)")
+            self.fsm.current_trial.outcome_given = outcome_given
+            #### PROBABILISTIC OUTCOME END #############################################
+
         self.on_event('trial_over')
 
     
@@ -338,7 +342,9 @@ class TrialState(State):
             return 'hit' if self.got_response else 'miss'
         elif value == 'no-go':
             return 'fa' if self.got_response else 'cr'
-        elif value == 'catch':
+        # elif value == 'catch':
+        #     return 'catch - response' if self.got_response else 'catch - no response'
+        else:
             return 'catch - response' if self.got_response else 'catch - no response'
 
     def on_event(self, event):

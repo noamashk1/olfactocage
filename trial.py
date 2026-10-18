@@ -14,6 +14,7 @@ class Trial:
         self.start_time = None
         self.current_stim_index = None
         self.licks_time = []
+        self.outcome_given = ''  # yes/no for go and no-go; empty for catch
 
     def update_current_mouse(self, new_mouse: 'Mouse'):
         self.current_mouse = new_mouse
@@ -50,18 +51,21 @@ class Trial:
         self.start_time = None
         self.current_stim_index = None
         self.licks_time = []
+        self.outcome_given = ''  # yes/no for go and no-go; empty for catch
 
     def add_lick_time(self):
         current_datetime = datetime.now()
         self.licks_time.append(current_datetime.strftime('%H:%M:%S.%f'))
 # Function to write trial results
     def write_trial_to_csv(self, txt_file_name):
-        header = ['date', 'start time', 'end time', 'mouse ID', 'level', r'go\no-go','stim index', 'stim name','score', 'licks_time'] # Define the header if the file does not exist yet
+        # header = ['date', 'start time', 'end time', 'mouse ID', 'level', r'go\no-go','stim index', 'stim name','score', 'licks_time']
+        header = ['date', 'start time', 'end time', 'mouse ID', 'level', r'go\no-go','stim index', 'stim name','score', 'licks_time', 'outcome given']
         current_datetime = datetime.now()
         date = current_datetime.strftime('%Y-%m-%d')  # Get current date
         end_time = current_datetime.strftime('%H:%M:%S.%f')  # Get current time
         stim_name = self.current_stim_number
-        trial_data = [date, self.start_time, end_time, self.current_mouse.id, self.current_mouse.level, self.current_value,self.current_stim_index,stim_name, self.score , self.licks_time]
+        # trial_data = [date, self.start_time, end_time, self.current_mouse.id, self.current_mouse.level, self.current_value,self.current_stim_index,stim_name, self.score , self.licks_time]
+        trial_data = [date, self.start_time, end_time, self.current_mouse.id, self.current_mouse.level, self.current_value,self.current_stim_index,stim_name, self.score , self.licks_time, self.outcome_given]
         with open(txt_file_name, mode='a', newline='') as file:
             writer = csv.writer(file)
             # Check if the file is empty to write the header
