@@ -112,11 +112,11 @@ class IdleState(State):
                     log_memory_usage("IdleState periodic check")
             
             #### HABITUATION BYPASS START (remove tomorrow) ####################################
-            if lgpio.gpio_read(h, IR_pin) == 1 and not self.fsm.exp.live_w.pause:
-                first_mouse = next(iter(self.fsm.exp.mice_dict.values()))
-                self.fsm.current_trial.update_current_mouse(first_mouse)
-                self.on_event('in_port')
-                break
+#             if lgpio.gpio_read(h, IR_pin) == 1 and not self.fsm.exp.live_w.pause:
+#                 first_mouse = next(iter(self.fsm.exp.mice_dict.values()))
+#                 self.fsm.current_trial.update_current_mouse(first_mouse)
+#                 self.on_event('in_port')
+#                 break
             #### HABITUATION BYPASS END #########################################################
 
             if ser.in_waiting > 0 and not self.fsm.exp.live_w.pause:
@@ -234,6 +234,11 @@ class TrialState(State):
                 self.give_reward()
             elif self.fsm.current_trial.score == 'fa':
                 self.give_punishment()
+            #################### remove after first habituation #######################
+#             else:
+#                 self.give_reward('miss- but rewarded')
+#                 print()
+            #######################################################
         self.on_event('trial_over')
 
     
