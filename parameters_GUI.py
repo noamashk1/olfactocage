@@ -123,6 +123,16 @@ class ParametersApp:
         self.timeout_punishment_entry.pack(side=tk.LEFT, padx=10)
         self.timeout_punishment_frame.pack(anchor=tk.W, padx=10, pady=10)
 
+##################################################################### maybe remove this block after sesitivity curve experiment
+
+        self.system_response_probability_frame = tk.Frame(root)
+        self.system_response_probability_label = tk.Label(self.system_response_probability_frame, text="system response probability (%):", font=self.font_style)
+        self.system_response_probability_label.pack(side=tk.LEFT)
+        self.system_response_probability_entry = tk.Entry(self.system_response_probability_frame, font=self.font_style, width=5)
+        self.system_response_probability_entry.insert(0, "80")
+        self.system_response_probability_entry.pack(side=tk.LEFT, padx=10)
+        self.system_response_probability_frame.pack(anchor=tk.W, padx=10, pady=10)
+
 #####################################################################
         self.ITI_display_option = tk.StringVar(value='1')  # Default to 1
 

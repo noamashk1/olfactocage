@@ -152,6 +152,7 @@ class TkinterApp:
             p.time_open_odor_entry,
             p.load_odor_duration_entry,
             p.timeout_punishment_entry,
+            p.system_response_probability_entry,
             p.ITI_bin_size_entry,
         ):
             entry.bind("<KeyRelease>", notify)
@@ -170,6 +171,7 @@ class TkinterApp:
             "open_odor_duration": p.time_open_odor_entry.get(),
             "load_odor_duration": p.load_odor_duration_entry.get(),
             "timeout_punishment": p.timeout_punishment_entry.get(),
+            "system_response_probability": p.system_response_probability_entry.get(),
             "ITI": p.ITI_display_option.get(),
             "ITI_time": p.ITI_bin_size_entry.get(),
         }
@@ -325,6 +327,7 @@ class TkinterApp:
                 "open_odor_duration": self.parameters_btns.time_open_odor_entry.get(),
                 "load_odor_duration": self.parameters_btns.load_odor_duration_entry.get(),
                 "timeout_punishment": self.parameters_btns.timeout_punishment_entry.get(),
+                "system_response_probability": self.parameters_btns.system_response_probability_entry.get(),
                 "ITI": self.parameters_btns.ITI_display_option.get(),
                 "ITI_time": self.parameters_btns.ITI_bin_size_entry.get() if self.parameters_btns.ITI_display_option.get() == '2' else None,
                 "stimulus_length": self.experiment.stim_length,

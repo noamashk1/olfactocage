@@ -231,7 +231,8 @@ class TrialState(State):
             outcome_given = ''
             if self.fsm.current_trial.current_value in ('go', 'no-go'):
                 outcome_given = 'no'
-                if np.random.random() < 0.8:
+                system_response_probability = float(self.fsm.exp.exp_params["system_response_probability"]) / 100
+                if np.random.random() < system_response_probability:
                     if self.fsm.current_trial.score == 'hit':
                         self.give_reward()
                         outcome_given = 'yes'
@@ -239,7 +240,7 @@ class TrialState(State):
                         self.give_punishment()
                         outcome_given = 'yes'
                 else:
-                    print("outcome withheld (probability 80%)")
+                    print(f"system response withheld (probability {self.fsm.exp.exp_params['system_response_probability']}%)")
             self.fsm.current_trial.outcome_given = outcome_given
             #### PROBABILISTIC OUTCOME END #############################################
 
